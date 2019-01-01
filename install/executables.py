@@ -146,18 +146,25 @@ else:
     log.info("* ERROR * No topology file provided")
     sys.exit(1)
 
-traj = openlib.load_traj(trajectory_path, topology_path)
+traj_and_args = openlib.load_traj(trajectory_path, topology_path)
 
 for action, arguments in conf.actions.items():
-    if arguments[0]:
+    
+    perform_action = arguments[0]
+    action_kwargs = arguments[1]
+    
+    if perform_action:
         action_name = action.rstrip("_")
-        log_msg = "Performing '{}' with args: '{}'"
-        log.info(log_msg.format(action_name, arguments[1]))
+        log_msg = "Performing '{}' with args: '{}']"
+        log.debug(log_msg.format(action_name, action_kwargs))
         
-        traj = system.actions_dict[action_name](traj, **arguments[1])
+        traj_and_args = system.actions_dict[action_name](
+            traj_and_args[0],
+            *traj_and_args[1:],
+            **action_kwargs,
+            )
 
 log.info("* Tauren-MD completed!")
-
 """
 
 update_script_code = r"""

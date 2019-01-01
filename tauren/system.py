@@ -21,7 +21,7 @@ along with Tauren-MD. If not, see <http://www.gnu.org/licenses/>.
 """
 
 from tauren.core import transform, export
-from tauren.plot import general
+from tauren.plot import rmsds
 
 trajectory_types = (".xtc", ".nc", ".trr", ".h5", ".pdb", ".binpos", ".dcd")
 topology_types = (".pdb", ".cif")
@@ -32,5 +32,5 @@ actions_dict = {
     "try_mdtraj_image_molecules": transform.try_mdtraj_image_molecules,
     "frames2PDB": export.frames2PDB,
     "save_traj": export.save_traj,
-    "plot_overall_rmsd": general.plot_overall_rmsd
+    "plot_overall_rmsd": rmsds.plot_overall_rmsd
     }

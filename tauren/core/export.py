@@ -20,12 +20,22 @@ You should have received a copy of the GNU General Public License
 along with Tauren-MD. If not, see <http://www.gnu.org/licenses/>.
 """
 
-from tauren import logger, system
+import sys
+
+from tauren import logger
+from tauren.core import _decorators
 
 log = logger.get_log(__name__)
 
 
-def frames2PDB(traj, frames="all", suffix="_"):
+@_decorators.validate_trajectory
+def frames2PDB(
+        traj,
+        *args,
+        frames="all",
+        prefix="_",
+        **kwargs,
+        ):
     """
     Extracts trajectory frames to PDB files using <sufix> name.
     
@@ -36,59 +46,54 @@ def frames2PDB(traj, frames="all", suffix="_"):
                 "0", "0:", ":500", "10:50", "1,40,65,100"
             Defaults to "all" -> extracts all frames
         
+        - prefix (opt, str): the prefix name for extracted PDBs.
+            Defailts to "_"
+        
     """
     
-    assert isinstance(suffix, str), "<suffix> must be str type."
-        
-    assert isinstance(frames, str), \
-        "<suffix> must be str type."
+    if not isinstance(prefix, str):
+        raise ValueError("<prefix> must be str type.")
     
-    if frames == "all":
-        
-        frames_to_extract = range(traj.n_frames)
+    if not isinstance(frames, str):
+        raise ValueError("<frames> must be str type.")
     
-    elif frames.startswith(":"):
-        try:
-            frames_to_extract = list(range(0, int(frames[1:]) + 1))
-        except ValueError:
-            log.info("<frames> not valid: '{}'".format(frames))
-            return
+    log.debug(f"<frames>: {frames}")
+    log.debug(f"<prefix>: {prefix}")
     
-    elif frames.endswith(":"):
-        try:
-            frames_to_extract = \
-                list(range(int(frames[:-1]), traj.n_frames + 1))
-        except ValueError:
-            log.info("<frames> not valid: '{}'".format(frames))
-            return
+    frames_not_valid_str = f"<frames> input not valid: '{frames}'"
+    frames_to_extract = 0
     
-    elif bool(frames.find(",")):
-        try:
-            frames_to_extract = [int(f) for f in frames.split(',')]
-        except ValueError:
-            log.info("<frames> not valid: '{}'".format(frames))
-            return
-    else:
-        try:
-            frames_to_extract = list(int(frames))
-        except ValueError:
-            log.info("<frames> not valid: '{}'".format(frames))
-            return
+    possible_inputs = (
+        "all" in frames,
+        frames.startswith(":"),
+        frames.endswith(":"),
+        False if frames.find(",") < 0 else True,
+        True,
+        )
     
-    if not(frames_to_extract):
-        msg1 = "* ERROR * Couldn't identify the frames to extract: '{}'"
-        log.info(msg1.format(frames_to_extract))
-        
-        msg2 = "* ERROR * Likely frames specified are outside the traj range?"
-        log.info(msg2)
-
-        return
+    dict_of_actions = {
+        0: range(traj.n_frames),
+        1: list(range(0, int(frames[1:]) + 1)),
+        2: list(range(int(frames[:-1]), traj.n_frames + 1)),
+        3: [int(f) for f in frames.split(',')],
+        4: list(int(frames)),
+        }
     
-    log.debug("<frames>: {}".format(frames))
+    which_action = possible_inputs.index(True)
+    
+    try:
+        frames_to_extract = dict_of_actions[which_action]
+    
+    except ValueError as e:
+        log.info(e)
+        log.info(frames_not_valid_str)
+        sys.exit(1)
+    
+    assert bool(frames_to_extract), \
+        "* ERROR * Couldn't identify the frames to extract."
     
     leading_zeros = str(len(str(traj.n_frames)))
-    pdb_name_fmt = suffix + "{:0>" + leading_zeros + "}.pdb"
-    print(pdb_name_fmt)
+    pdb_name_fmt = prefix + "{:0>" + leading_zeros + "}.pdb"
     
     for frame in frames_to_extract:
         
@@ -96,19 +101,27 @@ def frames2PDB(traj, frames="all", suffix="_"):
             slice_ = traj.slice(frame, copy=True)
         
         except IndexError:
-            msg = "* Frame '{}' does NOT exists in trajectory, ignoring...".\
-                format(frame)
-            log.info(msg)
+            log.info(
+                f"* Frame '{frame}' does NOT exist in trajectory, ",
+                "ignoring...",
+                )
             continue
         
         pdb_name = pdb_name_fmt.format(frame)
         slice_.save_pdb(pdb_name)
-        log.info("* extracted {}".format(pdb_name))
+        log.info(f"* extracted {pdb_name}")
     
-    return traj
+    return (traj, )
 
 
-def save_traj(traj, file_name="traj_output.dcd", overwrite=True):
+@_decorators.validate_trajectory
+def save_traj(
+        traj,
+        *args,
+        file_name="traj_output.dcd",
+        overwrite=True,
+        **kwargs,
+        ):
     """
     Saves trajectory to <file_name>.
     Trajectory format is given by extension name.
@@ -121,10 +134,10 @@ def save_traj(traj, file_name="traj_output.dcd", overwrite=True):
         
         - overwrite (bool): if file_name already exists, overwrites it.
     """
-    log.info("* Exporting trajectory to: {}".format(file_name))
+    log.info(f"* Exporting trajectory to: {file_name}")
     
     traj.save(file_name, force_overwrite=overwrite)
     
     log.info("    ... saved")
     
-    return traj
+    return (traj, )
