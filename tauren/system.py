@@ -32,5 +32,5 @@ actions_dict = {
     "try_mdtraj_image_molecules": transform.try_mdtraj_image_molecules,
     "frames2PDB": export.frames2PDB,
     "save_traj": export.save_traj,
-    "plot_overall_rmsd": rmsds.plot_overall_rmsd
+    "plot_overall_rmsd": rmsds.plot_overall_rmsd,
     }
