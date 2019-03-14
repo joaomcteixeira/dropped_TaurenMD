@@ -270,16 +270,16 @@ class TaurenTraj(ABC):
             f"    num of residues: {self.n_residues}\n"
             f"    num of atoms: {self.n_atoms}\n"
             "\n"
-            f"    total time: {self.totaltime}\n"
+            f"    total time: {self.totaltime:.3f}\n"
             "\n"
-            f"    time_step: {self.timestep} (usually ps)\n"
-            f"        or {self.timestep / 1000} (usually ns)\n"
+            f"    time_step: {self.timestep:.3f} (usually ps)\n"
+            f"        or {(self.timestep / 1000):.3f} (usually ns)\n"
             "*\n"
             )
         
         log.info(info)
         
-        return
+        return info
     
     def remove_solvent(self, **kwargs):
         """
@@ -425,7 +425,7 @@ class TaurenTraj(ABC):
         TypeError
             If selection is not string.
         """
-        
+        log.info("* Setting atom selection:")
         log.debug(f"<selection>: {selector}")
         
         if isinstance(selector, str):
@@ -439,6 +439,8 @@ class TaurenTraj(ABC):
                 "<selection> parameter must be STRING or None types."
                 f"'{type(selector)}' given."
                 )
+        
+        log.info(f"    atom selection set to {self.atom_selection}")
         
         return
     
@@ -1083,6 +1085,10 @@ class TaurenMDAnalysis(TaurenTraj):
         
         log.info("remove solvent is not implemented for MDAnalysis routines")
         
+        noHOHselector = "not(protein or nucleic)"
+        
+        self.atom_selection = noHOHselector#f"{self.atom_selection} or {noHOHselector}"
+        
         return
     
     def image_molecules(self):
@@ -1372,7 +1378,6 @@ class TaurenMDTraj(TaurenTraj):
             self,
             *,
             exclude=None,
-            inplace=True,
             **kwargs
             ):
         """
@@ -1392,6 +1397,7 @@ class TaurenMDTraj(TaurenTraj):
             is created (returned).
             If ``True``, the :att:`~original_traj` is replaced.
             Defaults to True.
+            .. deprecated:: 0.6.2
         
         Return
         ------
@@ -1403,17 +1409,13 @@ class TaurenMDTraj(TaurenTraj):
         
         new_traj = self.trajectory.remove_solvent(
             inplace=False,
-            exclude=exclude
+            exclude=exclude,
             )
         
         log.info(f"    solventless trajectory: {self.trajectory}")
         
-        if inplace:
-            self.original_traj = new_traj
-            return None
-        
-        else:
-            return new_traj
+        self.original_traj = new_traj
+        return 
     
     def image_molecules(
             self,
