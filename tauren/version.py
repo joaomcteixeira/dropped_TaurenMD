@@ -20,7 +20,7 @@ Tauren-MD follows `Semantic Versioning 2.0.0`_
 #
 # Contributors to this file:
 # - João M.C. Teixeira (https://github.com/joaomcteixeira)
-__version__ = "0.6.0"
+__version__ = "0.6.2"
 """
 version number
 """
