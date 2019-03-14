@@ -494,36 +494,8 @@ class TaurenTraj(ABC):
         log.debug(f"<prefix>: {prefix}")
         log.debug(f"<ext>: {ext}")
         
-        # frames_to_extract is a list of the frames number
-        # starting at 1.
-        if frames == "all":
-            frames_to_extract = self.sliced_frames_list
+        frames_to_extract = self._get_frame_list_from_string(frames)
         
-        elif isinstance(frames, str):
-            
-            if frames.isdigit():
-                frames_to_extract = [int(frames)]
-            
-            elif "," in frames and frames.replace(",", "").isdigit():
-                frames_to_extract = frames.split(",")
-                
-            elif ":" in frames and frames.replace(":", "").isdigit():
-                frames_to_extract = \
-                    self.full_frames_list[
-                        self._gen_frame_slicer_from_string(frames)
-                        ]
-            
-            else:
-                raise ValueError(
-                    "<frames> not of valid format see: "
-                    f"{self.frames2file.__doc__}"
-                    )
-        
-        else:
-            raise TypeError(
-                f"<frames> should be string type: '{type(frames)}' given."
-                )
-                
         pdb_name_fmt = \
             prefix \
             + self._gen_pdb_name_format(len(self.full_frames_list), ext)
@@ -544,9 +516,57 @@ class TaurenTraj(ABC):
         
         return
     
+    
+    def _get_frame_list_from_string(self, frames):
+        """
+        Generates a list of frames from a string
+        """
+        
+        # frames_to_extract is a list of the frames number
+        # starting at 1.
+        if frames == "all":
+            frames_list = self.sliced_frames_list
+        
+        elif isinstance(frames, str):
+            
+            if frames.isdigit():
+                frames_list = [int(frames)]
+            
+            elif "," in frames and frames.replace(",", "").isdigit():
+                frames_list = list(map(lambda x: int(x), frames.split(",")))
+                
+            elif ":" in frames and frames.replace(":", "").isdigit():
+                frames_list = \
+                    self.full_frames_list[
+                        self._gen_frame_slicer_from_string(frames)
+                        ]
+            
+            else:
+                raise ValueError(
+                    "<frames> not of valid format see: "
+                    f"{TaurenMDAnalysis.frames2file.__doc__}"
+                    )
+        
+        else:
+            raise TypeError(
+                f"<frames> should be string type: '{type(frames)}' given."
+                )
+        
+        return frames_list
+    
     def _gen_frame_slicer_from_string(self, s):
         """
-        Returns a slicer object.
+        Generates a slicer object from string.
+        
+        The generated slicer is unrelated with the Traj frame slicer.
+        
+        Considers frames starting from 1 and END inclusive, though slicer
+        is zero indexed.
+        
+        Example:
+            
+            >>> _gen_frame_slicer_from_string("1")
+            slice(0, 1, 1)
         
         Does not check for s integrity.
         """
@@ -565,7 +585,7 @@ class TaurenTraj(ABC):
         elif s.startswith(":") and s.count(":") == 1:
             ss = s.split(":")
             start = 0
-            end = int(ss[0])
+            end = int(ss[1])
             step = 1
         
         elif s.count(":") == 1:
@@ -574,11 +594,19 @@ class TaurenTraj(ABC):
             end = int(ss[1])
             step = 1
         
-        elif s.count(":") == 2:
+        elif s.count(":") == 2 \
+                and not(s.startswith(":")) \
+                and len(s.split(":")) == 3:
+            
             ss = s.split(":")
-            start = int(ss[0] - 1)
+            start = int(ss[0]) - 1
             end = int(ss[1])
             step = int(ss[2])
+        
+        elif s.startswith("::") and s[2:].isdigit():
+            start = 0
+            end = len(self.full_frames_list)
+            step = int(s[2:])
         
         else:
             raise ValueError("slice string not valid")
@@ -963,8 +991,8 @@ class TaurenTraj(ABC):
         """
         pass
     
+    @staticmethod
     def _gen_selector(
-            self,
             identifiers,
             selection="segid",
             boolean="or",
@@ -1488,7 +1516,7 @@ class TaurenMDTraj(TaurenTraj):
             " IGNORING..."
             )
         
-        return
+        return "not implemented"
     
     def _frames2file(
             self,
