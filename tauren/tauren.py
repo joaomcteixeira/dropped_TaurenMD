@@ -1038,6 +1038,9 @@ class TaurenMDAnalysis(TaurenTraj):
         self.topology = mda.Universe(topology)
         self.original_traj = self.universe.trajectory
         
+        # mdanalysis specific attribute
+        self.reset_rmv_solvent()
+        
         super().__init__()
         
         return
@@ -1068,6 +1071,16 @@ class TaurenMDAnalysis(TaurenTraj):
             - self.original_traj[self._fslicer][0].time
             )
     
+    @TaurenTraj.atom_selection.getter
+    def atom_selection(self):
+        try:
+            atmsel = self._atom_selection
+        
+        except AttributeError:
+            atmsel = "all"
+        
+        return f"{self._rmv_solvent_selector} and {atmsel}"
+    
     @TaurenTraj.n_residues.getter
     def n_residues(self):
         return self.universe.atoms.n_residues
@@ -1076,20 +1089,30 @@ class TaurenMDAnalysis(TaurenTraj):
     def n_atoms(self):
         return len(self.universe.atoms)
     
-    def _remove_solvent(self, exclude=None, inplace=True, **kwargs):
+    def _remove_solvent(self, **kwargs):
         """
         Removes solvent
         
         NOT IMPLEMENTED
         """
         
-        log.info("remove solvent is not implemented for MDAnalysis routines")
+        log.info("* Removed solvent:")
         
-        noHOHselector = "not(protein or nucleic)"
-        
-        self.atom_selection = noHOHselector#f"{self.atom_selection} or {noHOHselector}"
+        self._rmv_solvent_selector = "(protein or nucleic)"
         
         return
+    
+    def reset_rmv_solvent(self):
+        """
+        Resets remove solvent action by activating solvent again.
+        
+        This method is specific for :class:`~TaurenMDAnalysis`.
+        """
+        
+        log.debug("activated solvent")
+        self._rmv_solvent_selector = "all"
+        
+        return 
     
     def image_molecules(self):
         log.info("image_molecules method not implemented for MDAnalaysis")
@@ -1132,7 +1155,7 @@ class TaurenMDAnalysis(TaurenTraj):
         for frame in frames_to_extract:
             
             try:
-                self.trajectory.write(
+                self.universe.select_atoms(self.atom_selection).write(
                     filename=pdb_name_fmt.format(frame),
                     frames=[frame],
                     file_format="PDB",
