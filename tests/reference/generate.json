@@ -1,0 +1,30 @@
+{
+    "input_data": {
+            "trajectory": "traj_test_PCNA.dcd",
+            "topology": "topology_test.pdb"
+        },
+    
+    "traj_type": "mdanalysis",
+    
+    "actions": {
+        
+        "remove_solvent": {
+            "exclude": null
+            },
+        
+        "frames2file": {
+            "frames": "0",
+            "prefix": "mda_noHOH",
+            "ext": "pdb"
+            },
+        
+        "atom_selection": {"selector": "segid A"},
+        
+        "frames2file_": {
+            "frames": "0",
+            "prefix": "mda_segid_A_",
+            "ext": "pdb"
+            }
+        
+        }
+    }
