@@ -1,5 +1,6 @@
 # Index
 
+- [v0.6.2](https://github.com/joaomcteixeira/Tauren-MD/blob/master/CHANGE_LOG.md#v062)
 - [v0.6.1](https://github.com/joaomcteixeira/Tauren-MD/blob/master/CHANGE_LOG.md#v061)
 - [v0.6.0](https://github.com/joaomcteixeira/Tauren-MD/blob/master/CHANGE_LOG.md#v060)
 - [v0.5.3](https://github.com/joaomcteixeira/Tauren-MD/blob/master/CHANGE_LOG.md#v053)
@@ -14,6 +15,16 @@
 - [v0.2.0](https://github.com/joaomcteixeira/Tauren-MD/blob/master/CHANGE_LOG.md#v020)
 - [v0.1.1](https://github.com/joaomcteixeira/Tauren-MD/blob/master/CHANGE_LOG.md#v011)
 - [v0.0.0](https://github.com/joaomcteixeira/Tauren-MD/blob/master/CHANGE_LOG.md#v000)
+
+# v0.6.2
+[Back to Index][1]
+
+- Implemented firs test battery, based on `pytest`,
+  - all tests are stored in `tests` folder.
+  - execute them by running `pytest` from the main `Tauren-MD` folder.
+- corrected bugs found from testing.
+- implemented `remove_solvent` in `MDAnalysis` derived routines.
+- implemented/improved some features in `tauren.py` module.
 
 # v0.6.1
 [Back to Index][1]
