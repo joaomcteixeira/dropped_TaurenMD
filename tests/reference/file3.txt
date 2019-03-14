@@ -1,0 +1,7 @@
+TITLE     MDANALYSIS FRAME 0: Created by PDBWriter
+CRYST1  130.927  130.927  130.927  90.00  90.00  90.00 P 1           1
+ATOM      1  N   MET A   1      33.120  74.596  38.460  1.00  0.00      A    N
+ATOM      2  H   MET A   0      33.682  75.306  38.013  1.00  0.00      B    H
+ATOM      3  H2  MET A   0      35.791  73.902  37.804  1.00  0.00      A    H
+ATOM  12160  Cl  CL  H1225     102.676  74.925 118.481  1.00  0.00      H    C
+END

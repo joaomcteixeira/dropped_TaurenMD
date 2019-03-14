@@ -26,14 +26,20 @@
             "ext": "pdb"
             },
         
-        "atom_selection": {"selector": null},
+        "atom_selection_": {"selector": null},
+        
+        "frames2file__": {
+            "frames": "0,50",
+            "prefix": "mda_frames_",
+            "ext": "pdb"
+            },
         
         "align_traj": {
             "inplace": true,
             "file_name": "mda_aligned_traj.dcd" 
             },
         
-        "frames2file_": {
+        "frames2file___": {
             "frames": "0,50",
             "prefix": "mda_aligned_",
             "ext": "pdb"
