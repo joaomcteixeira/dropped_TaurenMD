@@ -1,21 +1,21 @@
 {
     "input_data": {
-            "trajectory": "production_imaged_noSolvent.dcd",
-            "topology": "topology_imaged_noSolvent.pdb"
+            "trajectory": "../reference/traj_test_PCNA.dcd",
+            "topology": "../reference/topology_test.pdb"
         },
     
-    "traj_type": "mdtraj",
+    "traj_type": "mdanalysis",
     
     "actions": {
         
         "atom_selection": {
-            "selector": "chainid 0"
+            "selector": "segid A"
             },
         
         "produce_rmsds_combined_chains_": {
             
             "calc_rmsds_combined_chains": {
-                "chains": "1",
+                "chains": "B",
                 "ref_frame": 0
                 },
             

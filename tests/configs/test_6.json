@@ -1,15 +1,15 @@
 {
     "input_data": {
-            "trajectory": "production_imaged_noSolvent.dcd",
-            "topology": "topology_imaged_noSolvent.pdb"
+            "trajectory": "../reference/traj_test_PCNA.dcd",
+            "topology": "../reference/topology_test.pdb"
         },
     
-    "traj_type": "mdtraj",
+    "traj_type": "mdanalysis",
     
     "actions": {
         
         "atom_selection": {
-            "selector": "chainid 1"
+            "selector": "segid A"
             },
         
         "frame_slice": {
@@ -19,7 +19,7 @@
             },
         
         "save_traj": {
-            "file_name": "traj_OUTPUT_chainid1.dcd"
+            "file_name": "traj_OUTPUT_segidA.dcd"
             }
         }
     }

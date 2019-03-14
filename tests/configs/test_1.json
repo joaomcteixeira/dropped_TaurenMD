@@ -1,7 +1,7 @@
 {
     "input_data": {
-            "trajectory": "production_imaged_noSolvent.dcd",
-            "topology": "topology_imaged_noSolvent.pdb"
+            "trajectory": "../reference/traj_test_PCNA.dcd",
+            "topology": "../reference/topology_test.pdb"
         },
     
     "traj_type": "mdtraj",
