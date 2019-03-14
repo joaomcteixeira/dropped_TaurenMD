@@ -21,10 +21,22 @@
         "atom_selection": {"selector": "segid A"},
         
         "frames2file_": {
-            "frames": "0",
+            "frames": "0,50",
             "prefix": "mda_segid_A_",
             "ext": "pdb"
-            }
+            },
         
+        "atom_selection": {"selector": null},
+        
+        "align_traj": {
+            "inplace": true,
+            "file_name": "mda_aligned_traj.dcd" 
+            },
+        
+        "frames2file_": {
+            "frames": "0,50",
+            "prefix": "mda_aligned_",
+            "ext": "pdb"
+            }
         }
     }
