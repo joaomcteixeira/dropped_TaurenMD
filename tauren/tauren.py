@@ -724,7 +724,7 @@ class TaurenTraj(ABC):
                 
         chain_list = self._gen_chain_list(chains)  # abstractmethod
         
-        combined_rmsds = self._calc_rmsds_combined_chains(
+        combined_rmsds, column_headers = self._calc_rmsds_combined_chains(
             chain_list,
             ref_frame,
             )
@@ -744,7 +744,8 @@ class TaurenTraj(ABC):
         key = self.observables.gen_key(
             storage_key,
             self.atom_selection,
-            chains,
+            column_headers,
+            specifier="for_chains",
             )
         
         data = np.vstack((frames_array, combined_rmsds)).T
@@ -914,6 +915,7 @@ class TaurenTraj(ABC):
             storage_key,
             self.atom_selection,
             chains_headers,
+            specifier="for_chains",
             )
         
         data = np.concatenate(
@@ -925,7 +927,7 @@ class TaurenTraj(ABC):
             )
         
         datatuple = TrajObservables.StorageData(
-            columns=["frames", key.identifier.split(",")],
+            columns=["frames", *key.identifier.split(",")],
             data=data,
             )
         
@@ -1022,7 +1024,7 @@ class TaurenTraj(ABC):
         if file_name is not None:
             filename = file_name
         else:
-            filename = f"{prefix}_{key.filenaming}.{sufix}"
+            filename = f"{prefix or ''}_{key.filenaming}.{sufix}"
         
         log.info(f"* Exporting {filename}")
         
@@ -1038,9 +1040,10 @@ class TaurenTraj(ABC):
         header = (
             f"{key.datatype}\n"
             f"{key.identifier}\n"
-            f"{key.file_naming}\n"
+            f"{key.filenaming}\n"
             f"{header}\n"
             f"{','.join(self.observables[key].columns)}"
+            )
         
         log.debug(f"header: {header}")
         
@@ -1261,7 +1264,12 @@ class TaurenMDAnalysis(TaurenTraj):
         
         R.run()
         
-        return R.rmsd[:, 2][self._fslicer]  # numpy array
+        filtered_selectors = list(map(
+            lambda x: x.replace("segid ", ""),
+            filtered_selectors,
+            ))
+        
+        return R.rmsd[:, 2][self._fslicer], filtered_selectors
     
     def _calc_rmsds_separated_chains(
             self,
@@ -1311,14 +1319,14 @@ class TaurenMDAnalysis(TaurenTraj):
         
         column_headers = list(map(
             lambda x: x.replace("segid ", ""),
-            filtered_selectors
+            [i for i, b in zip(filtered_selectors, subplot_has_data) if b]
             ))
         
         assert isinstance(column_headers, list), "c_selectors NOT list!"
         
         return (
             rmsds[:, subplot_has_data],
-            np.array(column_headers)[subplot_has_data],
+            column_headers
             )
     
     def _gen_chain_list(
@@ -1774,6 +1782,9 @@ class TrajObservables(dict):
         if not(isinstance(data, TrajObservables.StorageData)):
             raise TypeError(f"data sould be SorageData, '{type(data)}' given.")
         
+        if not(all(isinstance(i, str) for i in data.columns)):
+            raise TypeError("all items in data.columns list MUST be strings")
+        
         if key in self:
             
             log.warning(
@@ -1793,7 +1804,12 @@ class TrajObservables(dict):
         return
     
     @staticmethod
-    def gen_key(general_key, general_selection, specific_selection):
+    def gen_key(
+            general_key,
+            general_selection,
+            specific_selection,
+            specifier="for",
+            ):
         """
         Generates a StorageKey object from identification strings.
         
@@ -1811,6 +1827,12 @@ class TrajObservables(dict):
         specific_selection : str
             The temporary selection specific for the method that generated
             the data that adds to the general selection.
+        
+        specifier : :obj:`str`, optional
+            A human-directed specifier string to connect the general
+            selection and the specific selection strings.
+            Defaults to "for", will result in:
+            "<general_selection>_for_<specific_selection>"
         
         Returns
         -------
@@ -1863,7 +1885,7 @@ class TrajObservables(dict):
             filenaming=(
                 f"{general_key}"
                 f"_{general_selection}"
-                f"_for_{specific_selection}"
+                f"_{specifier}_{specific_selection}"
                 ),
             )
         
