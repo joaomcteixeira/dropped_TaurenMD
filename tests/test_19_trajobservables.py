@@ -25,32 +25,68 @@ def test_3():
     a = TrajObservables()
     a.append("just a string")
     
-    assert a == [{"data_1": "just a string"}]
+    assert a == [{"data": "just a string"}]
 
 def test_4():
     
     a = TrajObservables()
     a.append(1)
     
-    assert a == [{"data_1": 1}]
+    assert a == [{"data": 1}]
 
 def test_5():
     
     a = TrajObservables()
     a.append("a string", 1, name="testing1", data=1)
     
-    assert a == [{"data_1": "a string", "data_2": 1, "name": "testing1", "data": 1}]
+    assert a == [{
+        "data": 1,
+        "name": "testing1", 
+        "param_1": "a string",
+        "param_2": 1,
+        }]
 
 def test_6():
     
     a = TrajObservables()
     a.append("a string", 1, {"data_1": "just a string"})
     
-    assert a == [{"data_1": "a string", "data_2": 1, "data_3": {"data_1": "just a string"}}]
+    assert a == [{
+        "data": "a string",
+        "param_1": 1,
+        "param_2": {"data_1": "just a string"},
+        }]
 
 def test_7():
     
     a = TrajObservables()
-    with pytest.raises(ValueError):
-        
-        a.append("a string", data_1=1)
+    a.append("a string", "hello", param_1=1)
+    
+    assert a == [{"data": "a string", "param_1": 1, "param_2": "hello"}]
+
+def test_8():
+    
+    a = TrajObservables()
+    a.append("a string", "hello", "bla", param_1=1, param_3=2)
+    
+    assert a == [{
+        "data": "a string",
+        "param_1": 1,
+        "param_2": "hello",
+        "param_3": 2,
+        "param_4": "bla",
+        }]
+
+def test_9():
+    
+    a = TrajObservables()
+    a.append("a string", "hello", "bla", "bla", param_1=1, param_3=2)
+    
+    assert a == [{
+        "data": "a string",
+        "param_1": 1,
+        "param_2": "hello",
+        "param_3": 2,
+        "param_4": "bla",
+        "param_5": "bla",
+        }]

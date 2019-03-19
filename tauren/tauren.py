@@ -20,8 +20,8 @@ Tauren-MD trajectory objects.
 # - João M.C. Teixeira (https://github.com/joaomcteixeira)
 import sys
 import string
-from collections import namedtuple
 import numpy as np
+import json
 
 from abc import ABC, abstractmethod
 
@@ -30,7 +30,7 @@ import MDAnalysis as mda
 from MDAnalysis.analysis import align as mdaalign
 from MDAnalysis.analysis.rms import RMSD as mdaRMSD
 
-from tauren import logger
+from tauren import logger, _errors
 
 log = logger.get_log(__name__)
 
@@ -694,15 +694,22 @@ class TaurenTraj(ABC):
             The reference frame for the RMSD calculation.
         
         storage_key : str, optional
-            The first element of the key tuple with which the
-            calculated RMSD data will be stored in the trajectory's
-            observables' dictionary. Defaults to "rmsds_combined_chains".
+            A general naming string to identify the results calculated
+            with this method.
+            Defaults to "rmsds_combined_chains".
+        
+        **kwargs
+            Any other kwargs passed will be stored in the results
+            dictionary at :attr:`~observables`. Specific names of this
+            method will overwrite named arguments with the same name.
+            Specific names (keys) include: data, selection, identifier,
+            ref_frame, columns, name.
         
         Returns
         -------
-        key : tuple
-        The key with which data was stored in observables
-        attribute dictionary.
+        int
+            The index in which data was stored in :attr:`~observables`
+            attribute.
         
         Exceptions
         ----------
@@ -741,23 +748,39 @@ class TaurenTraj(ABC):
             f"{combined_rmsds.size} vs. {frames_array.size}"
             )
         
-        key = self.observables.gen_key(
-            storage_key,
-            self.atom_selection,
-            column_headers,
-            specifier="for_chains",
-            )
-        
         data = np.vstack((frames_array, combined_rmsds)).T
         
-        datatuple = self.observables.StorageData(
-            columns=["frames", key.identifier],
-            data=data,
-            )
+        storagedata = {
+            "data": data,
+            "selection": self.atom_selection,
+            "identifier": chains,
+            "ref_frame": ref_frame,
+            "columns": f"frames,{','.join(column_headers)}",
+            "name": f"{storage_key}_{self.atom_selection}_{chains}",
+            }
         
-        self.observables.store(key, datatuple)
+        self.observables.append({**kwargs, **storagedata})
         
-        return key
+        
+        
+        
+        # key = self.observables.gen_key(
+            # storage_key,
+            # self.atom_selection,
+            # column_headers,
+            # specifier="for_chains",
+            # )
+        
+        
+        
+        # datatuple = self.observables.StorageData(
+            # columns=["frames", key.identifier],
+            # data=data,
+            # )
+        
+        # self.observables.store(key, datatuple)
+        
+        return self.observables.last_index()
     
     @staticmethod
     def _check_chains_argument(chains):
@@ -870,16 +893,23 @@ class TaurenTraj(ABC):
         ref_frame : int, optional
             The reference frame for the RMSD calculation.
         
-        storage_key : str, optional
-            The first element of the key tuple with which the
-            calculated RMSD data will be stored in the trajectory's
-            observables' dictionary. Defaults to "rmsds_combined_chains".
+                storage_key : str, optional
+            A general naming string to identify the results calculated
+            with this method.
+            Defaults to "rmsds_combined_chains".
+        
+        **kwargs
+            Any other kwargs passed will be stored in the results
+            dictionary at :attr:`~observables`. Specific names of this
+            method will overwrite named arguments with the same name.
+            Specific names (keys) include: data, selection, identifier,
+            ref_frame, columns, name.
         
         Returns
         -------
-        key : tuple
-            The key with which data was stored in observables
-            attribute dictionary.
+        int
+            The index in which data was stored in :attr:`~observables`
+            attribute.
         
         Exceptions
         ----------
@@ -911,13 +941,6 @@ class TaurenTraj(ABC):
             f"{rmsds.shape[0]} vs. {frames_array.size}."
             )
         
-        key = self.observables.gen_key(
-            storage_key,
-            self.atom_selection,
-            chains_headers,
-            specifier="for_chains",
-            )
-        
         data = np.concatenate(
             (
                 frames_array.reshape(frames_array.size, 1),
@@ -926,13 +949,33 @@ class TaurenTraj(ABC):
             axis=1,
             )
         
-        datatuple = TrajObservables.StorageData(
-            columns=["frames", *key.identifier.split(",")],
-            data=data,
-            )
+        storagedata = {
+            "data": data,
+            "selection": self.atom_selection,
+            "identifier": chains,
+            "ref_frame": ref_frame,
+            "columns": f"frames,{','.join(chains_headers)}",
+            "name": f"{storage_key}_{self.atom_selection}_{chains}",
+            }
         
-        self.observables.store(key, datatuple)
-        return key
+        self.observables.append({**kwargs, **storagedata})
+        
+        # key = self.observables.gen_key(
+            # storage_key,
+            # self.atom_selection,
+            # chains_headers,
+            # specifier="for_chains",
+            # )
+        
+
+        
+        # datatuple = TrajObservables.StorageData(
+            # columns=["frames", *key.identifier.split(",")],
+            # data=data,
+            # )
+        
+        # self.observables.store(key, datatuple)
+        return self.observables.last_index()
     
     @abstractmethod
     def _calc_rmsds_separated_chains(self):
@@ -982,21 +1025,22 @@ class TaurenTraj(ABC):
     
     def export_data(
             self,
-            key,
+            index,
             prefix=None,
             sufix="csv",
             file_name=None,
             sep=",",
             header="",
+            plaintxt=False,
             ):
         """
         Exports data arrays to file.
         
         Parameters
         ----------
-        key : :class:`~TrajObservables`
-            The key with which the data is stored in the
-            observables attribute dictionary.
+        index : :obj:`int`
+            The index of :attr:`~self.observables` where data to export
+            is stored.
         
         prefix : :obj:`str`, optional
             A prefix to add to the naming attribute in the key object.
@@ -1010,7 +1054,12 @@ class TaurenTraj(ABC):
         file_name : :obj:`str`, optional
             The name of the file. Prevails over prefix and key naming.
             Defaults to None.
-            
+        
+        plaintxt : :obj:`bool`
+            If True exports data dictionary as plain text (JSON).
+            If False export type is select from data type.
+            Defaults to False.
+        
         sep : :obj:`str`, optional
             The column separator for np.ndarray data type.
             Defaults to comma ",".
@@ -1021,39 +1070,81 @@ class TaurenTraj(ABC):
             Defaults to nothing.
         """
         
-        if file_name is not None:
-            filename = file_name
-        else:
-            filename = f"{prefix or ''}_{key.filenaming}.{sufix}"
+        tablename = [
+            file_name,
+            self.observables[index].get("name"),
+            self.observables[index].get("storage_key"),
+            ]
+        
+        filename = (
+            f"{prefix or ''}_"
+            f"{next((x for x in tablename if x), f'data_index_{index}')}"
+            f".{sufix}"
+            )
         
         log.info(f"* Exporting {filename}")
         
-        if isinstance(self.observables[key].data, np.ndarray):
-            self._export_data_array(key, filename, sep, header)
+        if plaintxt:
+            self._export_data_plaintxt(index, filename)
         
-        log.info(f"    saved {file_name}")
+        else:
+            if isinstance(self.observables[index]["data"], np.ndarray):
+                self._export_data_array(index, filename, sep, header)
+        
+            else:
+                self._export_data_plaintxt(index, filename)
+        
+        log.info(f"    saved {filename}")
         
         return
     
-    def _export_data_array(self, key, filename, sep, header):
+    def _export_data_array(self, index, filename, sep, header):
+        """
+        Template to export numpy data.
+        """
         
-        header = (
-            f"{key.datatype}\n"
-            f"{key.identifier}\n"
-            f"{key.filenaming}\n"
-            f"{header}\n"
-            f"{','.join(self.observables[key].columns)}"
-            )
+        log.debug("exporting data as array")
+        
+        header = ''
+        for key, value in self.observables[index]:
+            if key == "data":
+                continue
+            header += f"{key}: {value}\n"
+        
+        try:
+            columns = self.observables[index]["columns"]
+        
+        except KeyError:
+            columns = [f"column_{i}"
+                for i in range(self.observables[index]["data"].shape[0])]
+        
+        header += f"{','.join(columns)}"
         
         log.debug(f"header: {header}")
         
         np.savetxt(
             filename,
-            self.observables[key].data,
+            self.observables[index]["data"],
             delimiter=sep,
             header=header,
             )
         
+        return
+    
+    def _export_data_paintxt(self, index, filename):
+        """
+        Template to export data as plain text.
+        """
+        
+        log.debug("exporting data as plain text")
+        
+        json.dump(
+            self.observables[index],
+            filename,
+            indent=4,
+            sort_keys=True,
+            )
+    
         return
 
 
@@ -1738,7 +1829,7 @@ class TrajObservables(list):
         for ii, item in enumerate(self):
             s += f"index [{ii}]:\n"
             for key, values in item.items():
-                s += f"\t{key}: {repr(alues)}\n"
+                s += f"\t{key}: {repr(values)}\n"
             else:
                 s += "\n"
         
@@ -1746,21 +1837,55 @@ class TrajObservables(list):
     
     def append(self, *args, **kwargs):
         
-        args_d = {f"data_{i}":data for i, data in enumerate(args, start=1)}
+        try:
+            data = kwargs["data"]
+            kwargs.pop("data")
+        
+        except KeyError:
+            data = args[0]
+            args = args[1:]
+        
+        except IndexError:
+            raise ValueError(
+                "If no positional argument is passed, "
+                "a keyword parameter named 'data' must be passed"
+                )
+        
+        args_d = {}
+        pos = 1
+        for arg in args:
+            
+            key = f"param_{pos}"
+            
+            while key in kwargs and pos < 1000:
+                pos += 1
+                key = f"param_{pos}"
+            
+            if pos > 1000:
+                raise _errors.YouShouldntBeHereError(
+                    "infinite loop. we could not assign param to dict"
+                    )
+            
+            args_d[key] = arg
+            pos += 1    
+        
         
         if set(args_d.keys()).intersection(set(kwargs.keys())):
             raise ValueError(
-                "Can't have kwargs named `data_#',"
+                "Can't have kwargs named `param_#',"
                 " where # is a number within args length"
                 )
         
-        super().append({**args_d, **kwargs})
+        super().append({**kwargs, **args_d, **{"data": data}})
         
         return
     
     def list(self):
         return str(self)
     
+    def last_index(self):
+        
+        return len(self) - 1
     
     # StorageKey = namedtuple(
         # "StorageKey",
