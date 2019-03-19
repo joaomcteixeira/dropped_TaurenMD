@@ -24,99 +24,105 @@ from tauren import plot
 log = logger.get_log(__name__)
 
 
-def rmsds_separated_chains(
-        taurentraj,
-        calc_rmsds_separated_chains,
-        *,
-        export_data=False,
-        plot_rmsd_chain_per_subplot=False,
-        plot_rmsd_individual_chains_one_subplot=False,
-        **kwargs
-        ):
-    """
-    Execute routines related to RMSDs of separated chains.
-    """
-        
-    key = taurentraj.calc_rmsds_separated_chains(**calc_rmsds_separated_chains)
-    
-    if export_data:
-        
-        _update_export_data(
-            export_data,
-            key,
-            )
-        
-        taurentraj.export_data(key, **export_data)
-    
-    if plot_rmsd_chain_per_subplot:
-        
-        _update_multiple_plot_config(
-            plot_rmsd_chain_per_subplot,
-            key,
-            "plot_rmsd_chain_per_subplot",
-            taurentraj.observables[key],
-            )
-
-        plot.rmsd_chain_per_subplot(
-            taurentraj.observables[key][1][:, 0],
-            taurentraj.observables[key][1][:, 1:].T,
-            **plot_rmsd_chain_per_subplot,
-            )
-    
-    if plot_rmsd_individual_chains_one_subplot:
-        
-        _update_multiple_plot_config(
-            plot_rmsd_individual_chains_one_subplot,
-            key,
-            "plot_rmsd_individual_chains_one_subplot",
-            taurentraj.observables[key],
-            )
-        
-        plot.rmsd_individual_chains_one_subplot(
-            taurentraj.observables[key][1][:, 0],
-            taurentraj.observables[key][1][:, 1:].T,
-            **plot_rmsd_individual_chains_one_subplot
-            )
-        
-    return
-
-
 def rmsds_combined_chains(
         taurentraj,
-        calc_rmsds_combined_chains,
+        calc_rmsds_combined_chains_kwargs,
         *,
-        export_data=False,
-        plot_rmsd_combined_chains=False,
+        export_data_kwargs=False,
+        plot_rmsd_combined_chains_kwargs=False,
         **kwargs
         ):
     """
     Execute routines related to RMSDs of combined chains.
     """
         
-    key = taurentraj.calc_rmsds_combined_chains(**calc_rmsds_combined_chains)
+    index = taurentraj.calc_rmsds_combined_chains(
+        **calc_rmsds_combined_chains_kwargs
+        )
     
-    if export_data:
+    if export_data_kwargs:
         
         _update_export_data(
-            export_data,
-            key,
+            export_data_kwargs,
+            taurentraj.observables[index],
+            index,
             )
         
-        taurentraj.export_data(key, **export_data)
+        taurentraj.export_data(index, **export_data_kwargs)
     
-    if plot_rmsd_combined_chains:
+    if plot_rmsd_combined_chains_kwargs:
         
         _update_single_plot_config(
-            plot_rmsd_combined_chains,
-            key,
+            plot_rmsd_combined_chains_kwargs,
+            index,
             "plot",
-            taurentraj.observables[key],
+            taurentraj.observables[index],
             )
         
         plot.rmsd_combined_chains(
-            taurentraj.observables[key][1][:, 0],
-            taurentraj.observables[key][1][:, 1],
-            **plot_rmsd_combined_chains,
+            taurentraj.observables[index]["data"][:, 0],
+            taurentraj.observables[index]["data"][:, 1],
+            **plot_rmsd_combined_chains_kwargs,
+            )
+        
+    return
+
+
+def rmsds_separated_chains(
+        taurentraj,
+        calc_rmsds_separated_chains_kwargs,
+        *,
+        export_data_kwargs=False,
+        plot_rmsd_chain_per_subplot_kwargs=False,
+        plot_rmsd_individual_chains_one_subplot_kwargs=False,
+        **kwargs
+        ):
+    """
+    Execute routines related to RMSDs of separated chains.
+    """
+        
+    index = taurentraj.calc_rmsds_separated_chains(
+        **calc_rmsds_separated_chains_kwargs
+        )
+    
+    if export_data_kwargs:
+        
+        _update_export_data(
+            export_data_kwargs,
+            taurentraj.observables[index],
+            index,
+            )
+        
+        taurentraj.export_data(index, **export_data_kwargs)
+    
+    if plot_rmsd_chain_per_subplot_kwargs:
+        
+        _update_multiple_plot_config(
+            plot_rmsd_chain_per_subplot_kwargs,
+            index,
+            "plot_rmsd_chain_per_subplot",
+            taurentraj.observables[index],
+            )
+
+        plot.rmsd_chain_per_subplot(
+            taurentraj.observables[index]["data"][:, 0],
+            taurentraj.observables[index]["data"][:, 1:].T,
+            **plot_rmsd_chain_per_subplot_kwargs,
+            )
+    
+    if plot_rmsd_individual_chains_one_subplot_kwargs:
+        
+        _update_multiple_plot_config(
+            plot_rmsd_individual_chains_one_subplot_kwargs,
+            index,
+            "plot_rmsd_individual_chains_one_subplot",
+            taurentraj.observables[index],
+            )
+        
+        plot.rmsd_individual_chains_one_subplot(
+            taurentraj.observables[index]["data"][:, 0],
+            taurentraj.observables[index]["data"][:, 1:].T,
+            **plot_rmsd_individual_chains_one_subplot_kwargs,
             )
         
     return
@@ -133,39 +139,52 @@ def _get_key_list(key):
 
 def _update_export_data(
         kwargs,
-        key
+        data_dict,
+        index,
         ):
         
     if kwargs["file_name"] is None:
-        kwargs["file_name"] = f"{key.datatype}_{key.filenaming}.csv"
+        try:
+            kwargs["file_name"] = f"{data_dict['name']}.csv"
+        
+        except KeyError:
+            kwargs["file_name"] = f"data_for_index_{index}.csv"
 
 
 def _update_single_plot_config(
         kwargs,
-        key,
+        index,
         name,
-        data,
+        data_dict,
         ):
         
     if kwargs["label"] is None:
-        kwargs["label"] = data.columns[1]
+        kwargs["label"] = data_dict["columns"][1:].split(",")
     
     if kwargs["fig_name"] is None:
-        kwargs["fig_name"] = f"{name}_{key.filenaming}.pdf"
+        try:
+            kwargs["file_name"] = f"{name}_{data_dict['name']}.csv"
+        
+        except KeyError:
+            kwargs["file_name"] = f"{name}_data_for_index_{index}.csv"
 
 
 def _update_multiple_plot_config(
         kwargs,
-        key,
+        index,
         name,
-        data,
+        data_dict,
         ):
     
     if kwargs["labels"] is None:
-        kwargs["labels"] = data.columns[1:]  # key_list
+        kwargs["labels"] = data_dict["columns"][1:].split(",")
     
     if kwargs["fig_name"] is None:
-        kwargs["fig_name"] = f"{name}_{key.filenaming}.pdf"
+        try:
+            kwargs["file_name"] = f"{name}_{data_dict['name']}.csv"
+        
+        except KeyError:
+            kwargs["file_name"] = f"{name}_data_for_index_{index}.csv"
     
     if kwargs["colors"] is None:
         kwargs.pop("colors")
