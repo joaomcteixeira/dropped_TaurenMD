@@ -13,7 +13,8 @@ def test_key_gen_1():
     
     key_ref = TrajObservables.StorageKey(
         datatype="separated_RMSDs",
-        identifier="resid-1-50_A,resid-1-50_B",
+        selection="resid_1-50",
+        identifiers="A,B",
         filenaming="separated_RMSDs_resid-1-50_for_A-B",
         )
         
@@ -29,7 +30,8 @@ def test_key_gen_2():
     
     key_ref = TrajObservables.StorageKey(
         datatype="combined_RMSDs",
-        identifier="resid-1-50_A-B-C",
+        selection="resid_1-50",
+        identifiers="A,B,C",
         filenaming="combined_RMSDs_resid-1-50_for_A-B-C",
         )
         
@@ -66,7 +68,8 @@ def test_store_data_1():
     
     key = TrajObservables.StorageKey(
         datatype="dummy_data",
-        identifier="dddumy",
+        selection="dummysel",
+        identifiers="dddumy",
         filenaming="plot_dummy",
         )
     
@@ -83,7 +86,8 @@ def test_store_data_2():
     
     key = TrajObservables.StorageKey(
         datatype="dummy_data",
-        identifier="dddumy",
+        selection="dummysel",
+        identifiers="dddumy",
         filenaming="plot_dummy",
         )
     

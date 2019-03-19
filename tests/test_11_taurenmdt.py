@@ -154,3 +154,9 @@ def test_set_atom_selection_2():
     
     assert all(x == y for x, y in zip(f1, f2))
     os.remove("all_000.pdb")
+
+def test_rmsds_combined_1():
+    
+    traj.calc_rmsds_combined_chains()
+    
+    

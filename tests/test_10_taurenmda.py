@@ -348,3 +348,23 @@ def test_aligned_2():
 def test_reset_rmv_solvent():
     traj.reset_rmv_solvent()
     assert traj.atom_selection == "all and all"
+
+def test_rmsds_combined_1():
+    
+    key = traj.calc_rmsds_combined_chains()
+    
+    assert isinstance(key.datatype, str)
+    assert isinstance(key.identifier, str)
+    assert isinstance(key.filenaming, str)    
+    
+    traj.export_data(key)
+
+def test_rmsds_combined_2():
+    
+    key = traj.calc_rmsds_separated_chains()
+    
+    assert isinstance(key.datatype, str)
+    assert isinstance(key.identifier, str)
+    assert isinstance(key.filenaming, str)  
+    
+    traj.export_data(key)
