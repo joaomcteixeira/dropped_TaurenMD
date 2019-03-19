@@ -26,10 +26,10 @@ log = logger.get_log(__name__)
 
 def rmsds_combined_chains(
         taurentraj,
-        calc_rmsds_combined_chains_kwargs,
+        calc_rmsds_combined_chains,
         *,
-        export_data_kwargs=False,
-        plot_rmsd_combined_chains_kwargs=False,
+        export_data=False,
+        plot_rmsd_combined_chains=False,
         **kwargs
         ):
     """
@@ -37,32 +37,36 @@ def rmsds_combined_chains(
     """
         
     index = taurentraj.calc_rmsds_combined_chains(
-        **calc_rmsds_combined_chains_kwargs
+        **calc_rmsds_combined_chains
         )
     
-    if export_data_kwargs:
+    if export_data:
         
         _update_export_data(
-            export_data_kwargs,
+            export_data,
             taurentraj.observables[index],
             index,
             )
         
-        taurentraj.export_data(index, **export_data_kwargs)
+        log.debug(export_data)
+        
+        taurentraj.export_data(index, **export_data)
     
-    if plot_rmsd_combined_chains_kwargs:
+    if plot_rmsd_combined_chains:
         
         _update_single_plot_config(
-            plot_rmsd_combined_chains_kwargs,
+            plot_rmsd_combined_chains,
             index,
             "plot",
             taurentraj.observables[index],
             )
         
+        log.debug(plot_rmsd_combined_chains)
+        
         plot.rmsd_combined_chains(
             taurentraj.observables[index]["data"][:, 0],
             taurentraj.observables[index]["data"][:, 1],
-            **plot_rmsd_combined_chains_kwargs,
+            **plot_rmsd_combined_chains,
             )
         
     return
@@ -70,11 +74,11 @@ def rmsds_combined_chains(
 
 def rmsds_separated_chains(
         taurentraj,
-        calc_rmsds_separated_chains_kwargs,
+        calc_rmsds_separated_chains,
         *,
-        export_data_kwargs=False,
-        plot_rmsd_chain_per_subplot_kwargs=False,
-        plot_rmsd_individual_chains_one_subplot_kwargs=False,
+        export_data=False,
+        plot_rmsd_chain_per_subplot=False,
+        plot_rmsd_individual_chains_one_subplot=False,
         **kwargs
         ):
     """
@@ -82,47 +86,53 @@ def rmsds_separated_chains(
     """
         
     index = taurentraj.calc_rmsds_separated_chains(
-        **calc_rmsds_separated_chains_kwargs
+        **calc_rmsds_separated_chains
         )
     
-    if export_data_kwargs:
+    if export_data:
         
         _update_export_data(
-            export_data_kwargs,
+            export_data,
             taurentraj.observables[index],
             index,
             )
         
-        taurentraj.export_data(index, **export_data_kwargs)
+        log.debug(export_data)
+        
+        taurentraj.export_data(index, **export_data)
     
-    if plot_rmsd_chain_per_subplot_kwargs:
+    if plot_rmsd_chain_per_subplot:
         
         _update_multiple_plot_config(
-            plot_rmsd_chain_per_subplot_kwargs,
+            plot_rmsd_chain_per_subplot,
             index,
             "plot_rmsd_chain_per_subplot",
             taurentraj.observables[index],
             )
-
+        
+        log.debug(plot_rmsd_chain_per_subplot)
+        
         plot.rmsd_chain_per_subplot(
             taurentraj.observables[index]["data"][:, 0],
             taurentraj.observables[index]["data"][:, 1:].T,
-            **plot_rmsd_chain_per_subplot_kwargs,
+            **plot_rmsd_chain_per_subplot,
             )
     
-    if plot_rmsd_individual_chains_one_subplot_kwargs:
+    if plot_rmsd_individual_chains_one_subplot:
         
         _update_multiple_plot_config(
-            plot_rmsd_individual_chains_one_subplot_kwargs,
+            plot_rmsd_individual_chains_one_subplot,
             index,
             "plot_rmsd_individual_chains_one_subplot",
             taurentraj.observables[index],
             )
         
+        log.debug(plot_rmsd_individual_chains_one_subplot)
+        
         plot.rmsd_individual_chains_one_subplot(
             taurentraj.observables[index]["data"][:, 0],
             taurentraj.observables[index]["data"][:, 1:].T,
-            **plot_rmsd_individual_chains_one_subplot_kwargs,
+            **plot_rmsd_individual_chains_one_subplot,
             )
         
     return
@@ -159,14 +169,14 @@ def _update_single_plot_config(
         ):
         
     if kwargs["label"] is None:
-        kwargs["label"] = data_dict["columns"][1:].split(",")
+        kwargs["label"] = data_dict["columns"][1:]
     
     if kwargs["fig_name"] is None:
         try:
-            kwargs["file_name"] = f"{name}_{data_dict['name']}.csv"
+            kwargs["fig_name"] = f"{name}_{data_dict['name']}.pdf"
         
         except KeyError:
-            kwargs["file_name"] = f"{name}_data_for_index_{index}.csv"
+            kwargs["fig_name"] = f"{name}_data_for_index_{index}.pdf"
 
 
 def _update_multiple_plot_config(
@@ -177,14 +187,14 @@ def _update_multiple_plot_config(
         ):
     
     if kwargs["labels"] is None:
-        kwargs["labels"] = data_dict["columns"][1:].split(",")
+        kwargs["labels"] = data_dict["columns"][1:]
     
     if kwargs["fig_name"] is None:
         try:
-            kwargs["file_name"] = f"{name}_{data_dict['name']}.csv"
+            kwargs["fig_name"] = f"{name}_{data_dict['name']}.pdf"
         
         except KeyError:
-            kwargs["file_name"] = f"{name}_data_for_index_{index}.csv"
+            kwargs["fig_name"] = f"{name}_data_for_index_{index}.pdf"
     
     if kwargs["colors"] is None:
         kwargs.pop("colors")

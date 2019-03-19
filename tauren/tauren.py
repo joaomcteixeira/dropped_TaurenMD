@@ -43,6 +43,8 @@ class TaurenTraj(ABC):
     _err_frame_index = \
         "    frame '{}' does NOT exist in trajectory, ignoring..."
     
+    filenametranslation = str.maketrans(",: ", "--_")
+    
     def __init__(self):
         
         self._set_full_frames_list()
@@ -755,11 +757,12 @@ class TaurenTraj(ABC):
             "selection": self.atom_selection,
             "identifier": chains,
             "ref_frame": ref_frame,
-            "columns": f"frames,{','.join(column_headers)}",
-            "name": f"{storage_key}_{self.atom_selection}_{chains}",
+            "columns": ["frames"] + column_headers,
+            "name": f"{storage_key}_{self.atom_selection}_{chains}".\
+                translate(self.filenametranslation),
             }
         
-        self.observables.append({**kwargs, **storagedata})
+        self.observables.append(**{**kwargs, **storagedata})
         
         
         
@@ -954,11 +957,12 @@ class TaurenTraj(ABC):
             "selection": self.atom_selection,
             "identifier": chains,
             "ref_frame": ref_frame,
-            "columns": f"frames,{','.join(chains_headers)}",
-            "name": f"{storage_key}_{self.atom_selection}_{chains}",
+            "columns": ["frames"] + chains_headers,
+            "name": f"{storage_key}_{self.atom_selection}_{chains}".\
+                translate(self.filenametranslation),
             }
         
-        self.observables.append({**kwargs, **storagedata})
+        self.observables.append(**{**kwargs, **storagedata})
         
         # key = self.observables.gen_key(
             # storage_key,
@@ -1085,6 +1089,8 @@ class TaurenTraj(ABC):
         
         log.info(f"* Exporting {filename}")
         
+        log.debug(f"data type: {type(self.observables[index]['data'])}")
+        
         if plaintxt:
             self._export_data_plaintxt(index, filename)
         
@@ -1107,7 +1113,7 @@ class TaurenTraj(ABC):
         log.debug("exporting data as array")
         
         header = ''
-        for key, value in self.observables[index]:
+        for key, value in self.observables[index].items():
             if key == "data":
                 continue
             header += f"{key}: {value}\n"
@@ -1132,7 +1138,7 @@ class TaurenTraj(ABC):
         
         return
     
-    def _export_data_paintxt(self, index, filename):
+    def _export_data_plaintxt(self, index, filename):
         """
         Template to export data as plain text.
         """
@@ -1726,7 +1732,7 @@ class TaurenMDTraj(TaurenTraj):
             f"combined_rmsds size '{combined_rmsds.size}' NOT matching"
             f" n_frames '{self.n_frames}'."
             )
-        return combined_rmsds
+        return combined_rmsds, chain_list
     
     def _atom_slice_traj(self, selector):
         """
@@ -1851,6 +1857,8 @@ class TrajObservables(list):
                 "If no positional argument is passed, "
                 "a keyword parameter named 'data' must be passed"
                 )
+        
+        print(type(data))
         
         args_d = {}
         pos = 1
