@@ -1736,7 +1736,8 @@ class TrajObservables(dict):
         "StorageKey",
         [
             "datatype",
-            "identifier",
+            "selection",
+            "identifiers",
             "filenaming",
             ],
         )
@@ -1749,8 +1750,14 @@ class TrajObservables(dict):
         A key string identifying the type of result stored.
         For example: "plot_combined_rmsds".
     
+    selection : :obj:`str`
+        Identifies the active global atom selection applied to the
+        input data used.
+    
     identifier : str
-        Identifies the data stored. If data is an 2D array, identifiers
+        Identifies the selection applied specifically to the method
+        used to generate the data.
+        If data is an 2D array, identifiers
         can represent the columns names separated by comma ``,``.
         Normally, the identifier can have information also on the
         atom selection applied on the input data.
@@ -1851,27 +1858,28 @@ class TrajObservables(dict):
                 f" '{type(general_selection)}' given."
                 )
         
-        translation = str.maketrans(",: ", "---")
-        general_selection = general_selection.translate(translation)
+        translation = str.maketrans(",: ", "--_")
+        translationid = str.maketrans(": ", "-_")
+        # general_selection = general_selection.translate(translation)
         
         if isinstance(specific_selection, str):
             
-            specific_selection = specific_selection.translate(translation)
-            idd = f"{general_selection}_{specific_selection}"
+            
+            idd = specific_selection.translate(translationid)
+            # idd = f"{general_selection}_{specific_selection}"
         
         elif isinstance(specific_selection, list):
             
-            idd = ",".join(
-                list(
-                    map(
-                        lambda x: f"{general_selection}_{x}",
-                        specific_selection,
-                        )
-                    )
-                )
+            idd = ",".join(specific_selection).translate(translationid)
+                # list(
+                    # map(
+                        # lambda x: x.translate(translation),
+                        # specific_selection,
+                        # )
+                    # )
+                # )
             
-            specific_selection = \
-                "-".join(specific_selection).translate(translation)
+            # specific_selection = idd.translate(translation)
         
         else:
             raise TypeError(
@@ -1881,12 +1889,13 @@ class TrajObservables(dict):
         
         key = TrajObservables.StorageKey(
             datatype=general_key,
-            identifier=idd,
+            selection=general_selection,
+            identifiers=idd,
             filenaming=(
                 f"{general_key}"
                 f"_{general_selection}"
                 f"_{specifier}_{specific_selection}"
-                ),
+                ).translate(translation),
             )
         
         return key
