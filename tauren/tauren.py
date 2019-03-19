@@ -1727,175 +1727,205 @@ class TaurenMDTraj(TaurenTraj):
         return rmsds, chain_list
 
 
-class TrajObservables(dict):
+class TrajObservables(list):
     """
     Stores observables obtained from traj analysis.
     """
     
-    StorageKey = namedtuple(
-        "StorageKey",
-        [
-            "datatype",
-            "selection",
-            "identifiers",
-            "filenaming",
-            ],
-        )
-    """
-    A namedtuple to be used as key values in TrajObservables dictionary.
-    
-    Attributes
-    ----------
-    datatype : str
-        A key string identifying the type of result stored.
-        For example: "plot_combined_rmsds".
-    
-    selection : :obj:`str`
-        Identifies the active global atom selection applied to the
-        input data used.
-    
-    identifier : str
-        Identifies the selection applied specifically to the method
-        used to generate the data.
-        If data is an 2D array, identifiers
-        can represent the columns names separated by comma ``,``.
-        Normally, the identifier can have information also on the
-        atom selection applied on the input data.
-    
-    filenaming : str
-        Because identifier can be complex, a filenaming attribute can
-        be created with a easy human readable string to be used to name
-        files derived from the stored data.
-    """
-
-    StorageData = namedtuple(
-        "StorageData",
-        [
-            "columns",
-            "data",
-            ],
-        )
-    
-    def store(self, key, data):
-        """
-        Stored data with key.
+    def __str__(self):
         
-        Warns user and ignores execution if key exists.
-        """
+        s = ""
+        for ii, item in enumerate(self):
+            s += f"index [{ii}]:\n"
+            for key, values in item.items():
+                s += f"\t{key}: {repr(alues)}\n"
+            else:
+                s += "\n"
         
-        if not(isinstance(key, TrajObservables.StorageKey)):
-            raise TypeError(f"key should be namedtuple, '{type(key)}' given.")
+        return s
+    
+    def append(self, *args, **kwargs):
         
-        if not(isinstance(data, TrajObservables.StorageData)):
-            raise TypeError(f"data sould be SorageData, '{type(data)}' given.")
+        args_d = {f"data_{i}":data for i, data in enumerate(args, start=1)}
         
-        if not(all(isinstance(i, str) for i in data.columns)):
-            raise TypeError("all items in data.columns list MUST be strings")
-        
-        if key in self:
-            
-            log.warning(
-                "* WARNING *"
-                f" The storage keyword {key} already exists in the"
-                " trajectory observables data base."
+        if set(args_d.keys()).intersection(set(kwargs.keys())):
+            raise ValueError(
+                "Can't have kwargs named `data_#',"
+                " where # is a number within args length"
                 )
-            
-            key.datatype = f"{key.datatype}_"
-            
-            log.warning(
-                f" CHANGING KEY TO... {key}"
-                )
-            
-        self.setdefault(key, data)
+        
+        super().append({**args_d, **kwargs})
         
         return
     
-    @staticmethod
-    def gen_key(
-            general_key,
-            general_selection,
-            specific_selection,
-            specifier="for",
-            ):
-        """
-        Generates a StorageKey object from identification strings.
+    def list(self):
+        return str(self)
+    
+    
+    # StorageKey = namedtuple(
+        # "StorageKey",
+        # [
+            # "datatype",
+            # "selection",
+            # "identifiers",
+            # "filenaming",
+            # ],
+        # )
+    # """
+    # A namedtuple to be used as key values in TrajObservables dictionary.
+    
+    # Attributes
+    # ----------
+    # datatype : str
+        # A key string identifying the type of result stored.
+        # For example: "plot_combined_rmsds".
+    
+    # selection : :obj:`str`
+        # Identifies the active global atom selection applied to the
+        # input data used.
+    
+    # identifier : str
+        # Identifies the selection applied specifically to the method
+        # used to generate the data.
+        # If data is an 2D array, identifiers
+        # can represent the columns names separated by comma ``,``.
+        # Normally, the identifier can have information also on the
+        # atom selection applied on the input data.
+    
+    # filenaming : str
+        # Because identifier can be complex, a filenaming attribute can
+        # be created with a easy human readable string to be used to name
+        # files derived from the stored data.
+    # """
+
+    # StorageData = namedtuple(
+        # "StorageData",
+        # [
+            # "columns",
+            # "data",
+            # ],
+        # )
+    
+    # def store(self, key, data):
+        # """
+        # Stored data with key.
         
-        Parameters
-        ----------
-        general_key : str
-            A key string identifying the type of result stored.
-            For example: "plot_combined_rmsds".
+        # Warns user and ignores execution if key exists.
+        # """
         
-        general_selection : str
-            Identifies a general selection performed on the input data
-            which generated the results.
-            For example: "resid 1:40".
+        # if not(isinstance(key, TrajObservables.StorageKey)):
+            # raise TypeError(f"key should be namedtuple, '{type(key)}' given.")
         
-        specific_selection : str
-            The temporary selection specific for the method that generated
-            the data that adds to the general selection.
+        # if not(isinstance(data, TrajObservables.StorageData)):
+            # raise TypeError(f"data sould be SorageData, '{type(data)}' given.")
         
-        specifier : :obj:`str`, optional
-            A human-directed specifier string to connect the general
-            selection and the specific selection strings.
-            Defaults to "for", will result in:
-            "<general_selection>_for_<specific_selection>"
+        # if not(all(isinstance(i, str) for i in data.columns)):
+            # raise TypeError("all items in data.columns list MUST be strings")
         
-        Returns
-        -------
-        StorageKey
-        """
-        
-        if not(isinstance(general_key, str)):
-            raise TypeError(
-                "<general_key> must be STRING type."
-                f" '{type(general_key)}' given."
-                )
-        
-        if not(isinstance(general_selection, str)):
-            raise TypeError(
-                "<general_selection> must be STRING type."
-                f" '{type(general_selection)}' given."
-                )
-        
-        translation = str.maketrans(",: ", "--_")
-        translationid = str.maketrans(": ", "-_")
-        # general_selection = general_selection.translate(translation)
-        
-        if isinstance(specific_selection, str):
+        # if key in self:
             
-            
-            idd = specific_selection.translate(translationid)
-            # idd = f"{general_selection}_{specific_selection}"
-        
-        elif isinstance(specific_selection, list):
-            
-            idd = ",".join(specific_selection).translate(translationid)
-                # list(
-                    # map(
-                        # lambda x: x.translate(translation),
-                        # specific_selection,
-                        # )
-                    # )
+            # log.warning(
+                # "* WARNING *"
+                # f" The storage keyword {key} already exists in the"
+                # " trajectory observables data base."
                 # )
             
-            # specific_selection = idd.translate(translation)
+            # key.datatype = f"{key.datatype}_"
+            
+            # log.warning(
+                # f" CHANGING KEY TO... {key}"
+                # )
+            
+        # self.setdefault(key, data)
         
-        else:
-            raise TypeError(
-                "<specific_selection> must be STRING or LIST type."
-                f" '{type(general_selection)}' given."
-                )
+        # return
+    
+    # @staticmethod
+    # def gen_key(
+            # general_key,
+            # general_selection,
+            # specific_selection,
+            # specifier="for",
+            # ):
+        # """
+        # Generates a StorageKey object from identification strings.
         
-        key = TrajObservables.StorageKey(
-            datatype=general_key,
-            selection=general_selection,
-            identifiers=idd,
-            filenaming=(
-                f"{general_key}"
-                f"_{general_selection}"
-                f"_{specifier}_{specific_selection}"
-                ).translate(translation),
-            )
+        # Parameters
+        # ----------
+        # general_key : str
+            # A key string identifying the type of result stored.
+            # For example: "plot_combined_rmsds".
         
-        return key
+        # general_selection : str
+            # Identifies a general selection performed on the input data
+            # which generated the results.
+            # For example: "resid 1:40".
+        
+        # specific_selection : str
+            # The temporary selection specific for the method that generated
+            # the data that adds to the general selection.
+        
+        # specifier : :obj:`str`, optional
+            # A human-directed specifier string to connect the general
+            # selection and the specific selection strings.
+            # Defaults to "for", will result in:
+            # "<general_selection>_for_<specific_selection>"
+        
+        # Returns
+        # -------
+        # StorageKey
+        # """
+        
+        # if not(isinstance(general_key, str)):
+            # raise TypeError(
+                # "<general_key> must be STRING type."
+                # f" '{type(general_key)}' given."
+                # )
+        
+        # if not(isinstance(general_selection, str)):
+            # raise TypeError(
+                # "<general_selection> must be STRING type."
+                # f" '{type(general_selection)}' given."
+                # )
+        
+        # translation = str.maketrans(",: ", "--_")
+        # translationid = str.maketrans(": ", "-_")
+        # # general_selection = general_selection.translate(translation)
+        
+        # if isinstance(specific_selection, str):
+            
+            
+            # idd = specific_selection.translate(translationid)
+            # # idd = f"{general_selection}_{specific_selection}"
+        
+        # elif isinstance(specific_selection, list):
+            
+            # idd = ",".join(specific_selection).translate(translationid)
+                # # list(
+                    # # map(
+                        # # lambda x: x.translate(translation),
+                        # # specific_selection,
+                        # # )
+                    # # )
+                # # )
+            
+            # # specific_selection = idd.translate(translation)
+        
+        # else:
+            # raise TypeError(
+                # "<specific_selection> must be STRING or LIST type."
+                # f" '{type(general_selection)}' given."
+                # )
+        
+        # key = TrajObservables.StorageKey(
+            # datatype=general_key,
+            # selection=general_selection,
+            # identifiers=idd,
+            # filenaming=(
+                # f"{general_key}"
+                # f"_{general_selection}"
+                # f"_{specifier}_{specific_selection}"
+                # ).translate(translation),
+            # )
+        
+        # return key
