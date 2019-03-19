@@ -1032,6 +1032,7 @@ class TaurenTraj(ABC):
             sep=",",
             header="",
             plaintxt=False,
+            **kwargs,
             ):
         """
         Exports data arrays to file.
