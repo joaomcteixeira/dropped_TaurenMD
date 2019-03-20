@@ -40,15 +40,15 @@ stream-line analysis procedures and, therefore, boost deliverables’
 rate.
 
 Implementation
---------------
+==============
 
 Versioning
-~~~~~~~~~~
+----------
 
 Tauren-MD follows `semantic version rules`_.
 
 User Requirements
-~~~~~~~~~~~~~~~~~
+-----------------
 
 -  Users should be able to access all Tauren-MD routines, hereafter
    named ``actions``, through a configurable text file, hereafter named
@@ -81,21 +81,19 @@ User Requirements
    bellow).
 
 Architecture
-~~~~~~~~~~~~
+------------
 
-It should be possible to use Tauren-MD as an user interface or as an
-independent and organized, well documented, library. With that in mind:
+It should be possible to use Tauren-MD as an interface for non-developer users as well as a well documented Python library. With that in mind:
 
 Installation and dependency management
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Tauren-MD installation should be possible via the `Tree-of-Life
-project`_. Additional methods cen eventually be implemented, for
-example, PiPy or Conda distribution. Nonetheless, installation via
-Tree-of-Life should always be possible.
+Tauren-MD installation should be possible via the `Tree-of-Life project`_, in order to facilitate this step to  non-developers.
+
+Additional methods cen eventually be implemented, for example, PiPy or Conda distribution. Nonetheless, installation via Tree-of-Life should always be possible.
 
 Tauren-MD executable file
-^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Tauren-MD executable file should:
 
@@ -116,10 +114,10 @@ Tauren-MD executable file should:
 
    -  communication between ``config`` file ``action``\ ’s name and the
       ``action``\ ’s function should be provided by a dictionary in
-      ``tauren._interface``.
+      ``tauren._interface`` module.
 
 Tauren-MD actions
-^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~
 
 Tauren-MD ``actions``:
 
@@ -130,40 +128,36 @@ Tauren-MD ``actions``:
       entries.
 
 Lib organization
-^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~
 
 General project organization:
 
--  ``tauren/``: *main* lib folder
+-  ``TaurenMD/``: *main* library folder
 
-   -  ``tauren.py``: contains Tauren-Trajectory classes.
+   -  ``tauren.py``: contains Tauren Trajectory classes.
+    
+      - ``TaurenTraj`` is an abstract class that provides an interface between the user and the MD analysis libs. **Polymorphism** *reigns* here.
+      - Classes implementing methods from the specific MD analysis libs should inherit from TaurenTraj and implement its *abstractmethods* accordingly.
+        - additional dunders can and should be implemented.
+      - There should be a dunder *abstractmethod* in ``TaurenTraj`` for every method there implemented that is an interface to a specific MD lib operation.
+      - Documented interface should be provided **only** by ``TaurenTraj``, from here, the program workflow is directed to the corresponding hidden methods of the specific subclasses thta configure the algorithms for the different MD analysis libs implemented. In this way, subclasses inheriting from ``TaurenTraj`` should provide **only** dunder methods.
+        - exceptions are allowed for **@properties**.
+      - **@staticmethods** and **@classmethods** should be testable by their *return* value.
 
-      -  TaurenTraj objects are created to enclose the different MD
-         analysis libraries, for example, to operate with MDTraj a
-         TaurenMDTraj instance should be created.
-      -  in this way, polymorphism is the main principle operating in
-         Tauren-MD object oriented architecture.
-      -  operations that derive from methods of the MD traj instance
-         should be implemented as methods of the TaurenTraj derived
-         classes.
-
-   -  ``core.py``: libs that are used system wide, commons, decorators,
+   -  ``core.py``: variables and functions used system wide, commons, decorators,
       helpers…
-   -  ``_interface.py``: connection between the user interface and
-      routines.
+   -  ``_interface.py``: interface between the Tauren-MD configuration file and
+      Tauren-MD library.
    -  ``logger.py``: the Tauren-MD logging interface.
    -  ``load.py``: module with functions used to load data from outside
       Tauren-MD.
-   -  ``produce.py``: functions that mostly serve the non-developer user
-      interface, used to concatenate (pipeline) several functionalities
-      (other functions) together.
+   -  ``produce.py``: this module provides functions that concatenate related operations in logical series, for example, calculating, exporting and plotting a given type of data.
    -  ``plot.py``: plotting templates.
 
       -  plotting routines should be functions in modules and NOT
          methods in classes.
-      -  from the user interface, ``produce.py`` handles the transfer of
-         data from the trajectories to the plotting system.
-
+      -  parameters to plots should be provided by kwargs.
+         
 .. _Python: https://www.python.org/
 .. _MDTraj: https://github.com/mdtraj/mdtraj
 .. _MDAnalysis: https://www.mdanalysis.org/
