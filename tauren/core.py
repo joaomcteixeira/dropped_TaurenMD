@@ -21,15 +21,15 @@ def log_args(func):
         log.debug(f"LOG ARGUMENTS FOR FUNC: {func.__name__}")
         
         for ii, arg in enumerate(args, start=1):
-            log.debug(f"positional arg {ii}: {repr(arg)} of type {type(arg)}")
+            log.debug(f"\tpositional arg {ii}: {repr(arg)} of type {type(arg)}")
         
         for key, value in kwargs.items():
             
-            log.debug(f"kw {key}: {repr(value)} of type {type(value)}")
+            log.debug(f"\tkw {key}: {repr(value)} of type {type(value)}")
         
         result = func(*args, **kwargs)
         
-        log.debug(f"RETURNS: {result} of type {type(result)}")
+        log.debug(f"\tRETURNS: {result} of type {type(result)}")
         
         return result
     

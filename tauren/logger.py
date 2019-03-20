@@ -29,7 +29,6 @@ tauren_log_config = {
     "formatters": {
         "debug_format": {
             "format": (
-                "%(asctime)s - "
                 "%(levelname)s - "
                 "%(filename)s:%(name)s:%(funcName)s:%(lineno)d - "
                 "%(message)s"
