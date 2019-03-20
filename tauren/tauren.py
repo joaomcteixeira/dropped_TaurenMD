@@ -43,7 +43,7 @@ class TaurenTraj(ABC):
     _err_frame_index = \
         "    frame '{}' does NOT exist in trajectory, ignoring..."
     
-    filenametranslation = str.maketrans(",: ", "--_")
+    filenametranslation = str.maketrans(",:() ", "----_")
     
     @core.log_args
     def __init__(self):
@@ -281,6 +281,20 @@ class TaurenTraj(ABC):
     def _remove_solvent(self):
         pass
     
+    def undo_rmv_solvent(self):
+        """
+        Undo a previous action of remove solvent by activating
+        solvent again.
+        
+        This method is only available when using
+        :mdanalysis:`MDAnalysis <>`.
+        """
+        self._undo_rmv_solvent()
+    
+    @abstractmethod
+    def _undo_rmv_solvent(self):
+        pass
+    
     @core.log_args
     def align_traj(
             self,
@@ -317,16 +331,19 @@ class TaurenTraj(ABC):
     @abstractmethod
     def _align_traj(self):
         return
-    
-    @abstractmethod
-    def image_molecules(self):
+        
+    def image_molecules(self, **kwargs):
         """
         Images molecules.
         """
-        # Do whatever needs to be done to start using the trajectory
-        # without solvent. The implementation may differ drastically
-        # from library used.
-        pass
+        
+        self._image_mocules(**kwargs)
+        
+        return
+    
+    @abstractmethod
+    def _image_molecules(self):
+        return
     
     @core.log_args
     def frame_slice(
@@ -1013,7 +1030,7 @@ class TaurenTraj(ABC):
     def export_data(
             self,
             index,
-            prefix=None,
+            prefix='',
             sufix="csv",
             file_name=None,
             sep=",",
@@ -1032,7 +1049,7 @@ class TaurenTraj(ABC):
         
         prefix : :obj:`str`, optional
             A prefix to add to the naming attribute in the key object.
-            Defaults to None.
+            Defaults to empty string.
             If file_name is given, prefix and key naming are not considered.
         
         sufix : :obj:`str`, optional
@@ -1064,8 +1081,11 @@ class TaurenTraj(ABC):
             self.observables[index].get("storage_key"),
             ]
         
+        if prefix:
+            prefix += _
+        
         filename = (
-            f"{prefix or ''}_"
+            f"{prefix}"
             f"{next((x for x in tablename if x), f'data_index_{index}')}"
             f".{sufix}"
             )
@@ -1079,7 +1099,7 @@ class TaurenTraj(ABC):
         
         else:
             if isinstance(self.observables[index]["data"], np.ndarray):
-                self._export_data_array(index, filename, sep, header)
+                self._export_data_array(index, filename, sep, header=header)
         
             else:
                 self._export_data_plaintxt(index, filename)
@@ -1089,27 +1109,29 @@ class TaurenTraj(ABC):
         return
     
     @core.log_args
-    def _export_data_array(self, index, filename, sep, header):
+    def _export_data_array(self, index, filename, sep, header=''):
         """
         Template to export numpy data.
         """
         
         log.debug("exporting data as array")
         
-        header = ''
         for key, value in self.observables[index].items():
             if key == "data":
                 continue
             header += f"{key}: {value}\n"
-        
+                
         try:
-            columns = self.observables[index]["columns"]
+            columns = list(map(
+                lambda x: str(x),
+                self.observables[index]["columns"],
+                ))
         
         except KeyError:
             columns = [f"column_{i}"
                 for i in range(self.observables[index]["data"].shape[0])]
-        
-        header += f"{','.join(columns)}"
+                
+        header += ','.join(columns)
         
         log.debug(f"header: {header}")
         
@@ -1214,19 +1236,14 @@ class TaurenMDAnalysis(TaurenTraj):
         
         return
     
-    def reset_rmv_solvent(self):
-        """
-        Resets remove solvent action by activating solvent again.
-        
-        This method is specific for :class:`~TaurenMDAnalysis`.
-        """
+    def _undo_rmv_solvent(self):
         
         log.debug("activated solvent")
         self._rmv_solvent_selector = "all"
         
         return
     
-    def image_molecules(self):
+    def _image_molecules(self, **kwargs):
         log.info("image_molecules method not implemented for MDAnalaysis")
         return
     
@@ -1566,8 +1583,11 @@ class TaurenMDTraj(TaurenTraj):
         self.original_traj = new_traj
         return
     
+    def _undo_rmv_solvent(self):
+        log.info("This method is not implemented for MDTraj subroutines")
+    
     @core.log_args
-    def image_molecules(
+    def _image_molecules(
             self,
             *,
             anchor_molecules=None,
@@ -1575,6 +1595,7 @@ class TaurenMDTraj(TaurenTraj):
             sorted_bonds=None,
             make_whole=True,
             inplace=True,
+            **kwargs,
             ):
         """
         Performs MDTraj.Trajectory.image_molecules, accepts same arguments.
@@ -1901,171 +1922,3 @@ class TrajObservables(list):
     def last_index(self):
         
         return len(self) - 1
-    
-    # StorageKey = namedtuple(
-        # "StorageKey",
-        # [
-            # "datatype",
-            # "selection",
-            # "identifiers",
-            # "filenaming",
-            # ],
-        # )
-    # """
-    # A namedtuple to be used as key values in TrajObservables dictionary.
-    
-    # Attributes
-    # ----------
-    # datatype : str
-        # A key string identifying the type of result stored.
-        # For example: "plot_combined_rmsds".
-    
-    # selection : :obj:`str`
-        # Identifies the active global atom selection applied to the
-        # input data used.
-    
-    # identifier : str
-        # Identifies the selection applied specifically to the method
-        # used to generate the data.
-        # If data is an 2D array, identifiers
-        # can represent the columns names separated by comma ``,``.
-        # Normally, the identifier can have information also on the
-        # atom selection applied on the input data.
-    
-    # filenaming : str
-        # Because identifier can be complex, a filenaming attribute can
-        # be created with a easy human readable string to be used to name
-        # files derived from the stored data.
-    # """
-
-    # StorageData = namedtuple(
-        # "StorageData",
-        # [
-            # "columns",
-            # "data",
-            # ],
-        # )
-    
-    # def store(self, key, data):
-        # """
-        # Stored data with key.
-        
-        # Warns user and ignores execution if key exists.
-        # """
-        
-        # if not(isinstance(key, TrajObservables.StorageKey)):
-            # raise TypeError(f"key should be namedtuple, '{type(key)}' given.")
-        
-        # if not(isinstance(data, TrajObservables.StorageData)):
-            # raise TypeError(f"data sould be SorageData, '{type(data)}' given.")
-        
-        # if not(all(isinstance(i, str) for i in data.columns)):
-            # raise TypeError("all items in data.columns list MUST be strings")
-        
-        # if key in self:
-            
-            # log.warning(
-                # "* WARNING *"
-                # f" The storage keyword {key} already exists in the"
-                # " trajectory observables data base."
-                # )
-            
-            # key.datatype = f"{key.datatype}_"
-            
-            # log.warning(
-                # f" CHANGING KEY TO... {key}"
-                # )
-            
-        # self.setdefault(key, data)
-        
-        # return
-    
-    # @staticmethod
-    # def gen_key(
-            # general_key,
-            # general_selection,
-            # specific_selection,
-            # specifier="for",
-            # ):
-        # """
-        # Generates a StorageKey object from identification strings.
-        
-        # Parameters
-        # ----------
-        # general_key : str
-            # A key string identifying the type of result stored.
-            # For example: "plot_combined_rmsds".
-        
-        # general_selection : str
-            # Identifies a general selection performed on the input data
-            # which generated the results.
-            # For example: "resid 1:40".
-        
-        # specific_selection : str
-            # The temporary selection specific for the method that generated
-            # the data that adds to the general selection.
-        
-        # specifier : :obj:`str`, optional
-            # A human-directed specifier string to connect the general
-            # selection and the specific selection strings.
-            # Defaults to "for", will result in:
-            # "<general_selection>_for_<specific_selection>"
-        
-        # Returns
-        # -------
-        # StorageKey
-        # """
-        
-        # if not(isinstance(general_key, str)):
-            # raise TypeError(
-                # "<general_key> must be STRING type."
-                # f" '{type(general_key)}' given."
-                # )
-        
-        # if not(isinstance(general_selection, str)):
-            # raise TypeError(
-                # "<general_selection> must be STRING type."
-                # f" '{type(general_selection)}' given."
-                # )
-        
-        # translation = str.maketrans(",: ", "--_")
-        # translationid = str.maketrans(": ", "-_")
-        # # general_selection = general_selection.translate(translation)
-        
-        # if isinstance(specific_selection, str):
-            
-            
-            # idd = specific_selection.translate(translationid)
-            # # idd = f"{general_selection}_{specific_selection}"
-        
-        # elif isinstance(specific_selection, list):
-            
-            # idd = ",".join(specific_selection).translate(translationid)
-                # # list(
-                    # # map(
-                        # # lambda x: x.translate(translation),
-                        # # specific_selection,
-                        # # )
-                    # # )
-                # # )
-            
-            # # specific_selection = idd.translate(translation)
-        
-        # else:
-            # raise TypeError(
-                # "<specific_selection> must be STRING or LIST type."
-                # f" '{type(general_selection)}' given."
-                # )
-        
-        # key = TrajObservables.StorageKey(
-            # datatype=general_key,
-            # selection=general_selection,
-            # identifiers=idd,
-            # filenaming=(
-                # f"{general_key}"
-                # f"_{general_selection}"
-                # f"_{specifier}_{specific_selection}"
-                # ).translate(translation),
-            # )
-        
-        # return key

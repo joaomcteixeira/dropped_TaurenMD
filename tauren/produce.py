@@ -157,10 +157,10 @@ def _update_export_data(
         
     if kwargs["file_name"] is None:
         try:
-            kwargs["file_name"] = f"{data_dict['name']}.csv"
+            kwargs["file_name"] = f"data_{data_dict['name']}"
         
         except KeyError:
-            kwargs["file_name"] = f"data_for_index_{index}.csv"
+            kwargs["file_name"] = f"data_for_index_{index}"
 
 
 @core.log_args
@@ -172,15 +172,15 @@ def _update_single_plot_config(
         ):
         
     if kwargs["label"] is None:
-        kwargs["label"] = data_dict["columns"][1:]
+        kwargs["label"] = ", ".join(data_dict["columns"][1:])
     
     if kwargs["fig_name"] is None:
         try:
-            kwargs["fig_name"] = f"{name}_{data_dict['name']}.pdf"
+            kwargs["fig_name"] = f"{name}_{data_dict['name']}"
         
         except KeyError:
-            kwargs["fig_name"] = f"{name}_data_for_index_{index}.pdf"
-
+            kwargs["fig_name"] = f"{name}_data_for_index_{index}"
+        
 
 @core.log_args
 def _update_multiple_plot_config(
@@ -195,10 +195,10 @@ def _update_multiple_plot_config(
     
     if kwargs["fig_name"] is None:
         try:
-            kwargs["fig_name"] = f"{name}_{data_dict['name']}.pdf"
+            kwargs["fig_name"] = f"{name}_{data_dict['name']}"
         
         except KeyError:
-            kwargs["fig_name"] = f"{name}_data_for_index_{index}.pdf"
+            kwargs["fig_name"] = f"{name}_data_for_index_{index}"
     
     if kwargs["colors"] is None:
         kwargs.pop("colors")

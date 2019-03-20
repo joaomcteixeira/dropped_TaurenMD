@@ -23,6 +23,7 @@ from tauren import produce
 
 actions_dict = {
     "remove_solvent": lambda x, y: x.remove_solvent(**y),
+    "undo_rmv_solvent": lambda x, y: x.undo_rmv_solvent(**y),
     "frame_slice": lambda x, y: x.frame_slice(**y),
     "atom_selection": lambda x, y: x.set_atom_selection(**y),
     "align_traj": lambda x, y: x.align_traj(**y),
