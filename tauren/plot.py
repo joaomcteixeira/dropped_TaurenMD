@@ -25,7 +25,7 @@ from functools import wraps
 from matplotlib import pyplot as plt
 from matplotlib import colors as mcolors
 
-from tauren import logger
+from tauren import logger, core
 
 log = logger.get_log(__name__)
 
@@ -104,6 +104,21 @@ def _calc_fig_size(
     
     return fs
 
+@core.log_args
+def _get_fig_name(fig_name, extension):
+    """
+    Generates final figure name according to fig_name and suffix.
+    
+    If fig_name does NOT have extension, adds extension. Returns
+    fig_name otherwise.
+    """
+    
+    if fig_name[-4] == ".":
+        return fig_name
+    
+    else:
+        return f"{fig_name}.{extension}"
+
 
 @_check_data
 def rmsd_chain_per_subplot(
@@ -124,7 +139,8 @@ def rmsd_chain_per_subplot(
         legend=True,
         legend_fs=6,
         legend_loc=4,
-        fig_name="rmsd_chain_per_subplot.pdf",
+        fig_name="rmsd_chain_per_subplot",
+        extension='pdf',
         **kwargs
         ):
     """
@@ -242,7 +258,7 @@ def rmsd_chain_per_subplot(
     else:
         axis.set_yticks(all_ticks[:-1])
     
-    fig.savefig(fig_name)
+    fig.savefig(_get_fig_name(fig_name, extension))
     log.info(_msg_fig_saved.format(fig_name))
     
     plt.close("all")
@@ -270,6 +286,7 @@ def rmsd_combined_chains(
         legend_fs=6,
         legend_loc=4,
         fig_name='plot_rmsd_combined.pdf',
+        extension='pdf',
         **kwargs
         ):
     """
@@ -347,7 +364,7 @@ def rmsd_combined_chains(
             loc=legend_loc,
             )
     
-    fig.savefig(fig_name)
+    fig.savefig(_get_fig_name(fig_name, extension))
     log.info(_msg_fig_saved.format(fig_name))
         
     plt.close("all")
@@ -375,6 +392,7 @@ def rmsd_individual_chains_one_subplot(
         legend_fs=6,
         legend_loc=4,
         fig_name="rmsd_individual_chains_one_subplot.pdf",
+        extension="pdf",
         **kwargs
         ):
     """
@@ -461,7 +479,7 @@ def rmsd_individual_chains_one_subplot(
             loc=legend_loc,
             )
     
-    fig.savefig(fig_name)
+    fig.savefig(_get_fig_name(fig_name, extension))
     log.info(_msg_fig_saved.format(fig_name))
     
     plt.close("all")
