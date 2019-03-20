@@ -30,7 +30,7 @@ import MDAnalysis as mda
 from MDAnalysis.analysis import align as mdaalign
 from MDAnalysis.analysis.rms import RMSD as mdaRMSD
 
-from tauren import logger, _errors
+from tauren import logger, core, _errors
 
 log = logger.get_log(__name__)
 
@@ -45,6 +45,7 @@ class TaurenTraj(ABC):
     
     filenametranslation = str.maketrans(",: ", "--_")
     
+    @core.log_args
     def __init__(self):
         
         self._set_full_frames_list()
@@ -202,6 +203,7 @@ class TaurenTraj(ABC):
         """
         pass
     
+    @core.log_args
     def _update_traj_slicer(
             self,
             start,
@@ -222,6 +224,7 @@ class TaurenTraj(ABC):
         
         return
     
+    @core.log_args
     def _check_correct_slice(self, end):
         """
         Checks if slicing end is less or equal than traj length.
@@ -266,6 +269,7 @@ class TaurenTraj(ABC):
         
         return info
     
+    @core.log_args
     def remove_solvent(self, **kwargs):
         """
         Removes solvent from trajectory.
@@ -277,6 +281,7 @@ class TaurenTraj(ABC):
     def _remove_solvent(self):
         pass
     
+    @core.log_args
     def align_traj(
             self,
             *,
@@ -323,6 +328,7 @@ class TaurenTraj(ABC):
         # from library used.
         pass
     
+    @core.log_args
     def frame_slice(
             self,
             start=1,
@@ -393,6 +399,7 @@ class TaurenTraj(ABC):
         
         return
     
+    @core.log_args
     def set_atom_selection(self, selector, **kwargs):
         """
         Sets the current atom selection.
@@ -429,6 +436,7 @@ class TaurenTraj(ABC):
         
         return
     
+    @core.log_args
     def frames2file(
             self,
             frames="all",
@@ -501,6 +509,7 @@ class TaurenTraj(ABC):
         
         return
     
+    @core.log_args
     def _get_frame_list_from_string(self, frames):
         """
         Generates a list of frames from a string
@@ -538,6 +547,7 @@ class TaurenTraj(ABC):
         
         return frames_list
     
+    @core.log_args
     def _gen_frame_slicer_from_string(self, s):
         """
         Generates a slicer object from string.
@@ -601,6 +611,7 @@ class TaurenTraj(ABC):
         return slicer
     
     @staticmethod
+    @core.log_args
     def _gen_pdb_name_format(num_of_frames, ext):
         """
         Creates a formatting string to apply leading zeros.
@@ -630,6 +641,7 @@ class TaurenTraj(ABC):
         """
         return
     
+    @core.log_args
     def save_traj(
             self,
             file_name="traj_output.dcd",
@@ -659,6 +671,7 @@ class TaurenTraj(ABC):
         """The subclass algorithm to save a trajectory."""
         pass
     
+    @core.log_args
     def calc_rmsds_combined_chains(
             self,
             *,
@@ -764,28 +777,10 @@ class TaurenTraj(ABC):
         
         self.observables.append(**{**kwargs, **storagedata})
         
-        
-        
-        
-        # key = self.observables.gen_key(
-            # storage_key,
-            # self.atom_selection,
-            # column_headers,
-            # specifier="for_chains",
-            # )
-        
-        
-        
-        # datatuple = self.observables.StorageData(
-            # columns=["frames", key.identifier],
-            # data=data,
-            # )
-        
-        # self.observables.store(key, datatuple)
-        
         return self.observables.last_index()
     
     @staticmethod
+    @core.log_args
     def _check_chains_argument(chains):
         """
         Checks validity of <chains> input argument.
@@ -861,6 +856,7 @@ class TaurenTraj(ABC):
         """
         pass
     
+    @core.log_args
     def calc_rmsds_separated_chains(
             self,
             *,
@@ -964,21 +960,6 @@ class TaurenTraj(ABC):
         
         self.observables.append(**{**kwargs, **storagedata})
         
-        # key = self.observables.gen_key(
-            # storage_key,
-            # self.atom_selection,
-            # chains_headers,
-            # specifier="for_chains",
-            # )
-        
-
-        
-        # datatuple = TrajObservables.StorageData(
-            # columns=["frames", *key.identifier.split(",")],
-            # data=data,
-            # )
-        
-        # self.observables.store(key, datatuple)
         return self.observables.last_index()
     
     @abstractmethod
@@ -1007,6 +988,7 @@ class TaurenTraj(ABC):
         pass
     
     @staticmethod
+    @core.log_args
     def _gen_selector(
             identifiers,
             selection="segid",
@@ -1027,6 +1009,7 @@ class TaurenTraj(ABC):
         assert isinstance(selector, str), "selector should be string"
         return selector
     
+    @core.log_args
     def export_data(
             self,
             index,
@@ -1105,6 +1088,7 @@ class TaurenTraj(ABC):
         
         return
     
+    @core.log_args
     def _export_data_array(self, index, filename, sep, header):
         """
         Template to export numpy data.
@@ -1138,6 +1122,7 @@ class TaurenTraj(ABC):
         
         return
     
+    @core.log_args
     def _export_data_plaintxt(self, index, filename):
         """
         Template to export data as plain text.
@@ -1157,13 +1142,14 @@ class TaurenTraj(ABC):
 
 class TaurenMDAnalysis(TaurenTraj):
     
+    @core.log_args
     def __init__(self, trajectory, topology):
         
         self.universe = mda.Universe(topology, trajectory)
         self.topology = mda.Universe(topology)
         self.original_traj = self.universe.trajectory
         
-        # mdanalysis specific attribute
+        # mdanalysis specific method
         self.reset_rmv_solvent()
         
         super().__init__()
@@ -1214,6 +1200,7 @@ class TaurenMDAnalysis(TaurenTraj):
     def n_atoms(self):
         return len(self.universe.atoms)
     
+    @core.log_args
     def _remove_solvent(self, **kwargs):
         """
         Removes solvent
@@ -1243,6 +1230,7 @@ class TaurenMDAnalysis(TaurenTraj):
         log.info("image_molecules method not implemented for MDAnalaysis")
         return
     
+    @core.log_args
     def _align_traj(
             self,
             weights,
@@ -1266,6 +1254,7 @@ class TaurenMDAnalysis(TaurenTraj):
         
         return
     
+    @core.log_args
     def _frames2file(
             self,
             frames_to_extract,
@@ -1296,6 +1285,7 @@ class TaurenMDAnalysis(TaurenTraj):
         
         return
     
+    @core.log_args
     def _save_traj(
             self,
             file_name,
@@ -1310,6 +1300,7 @@ class TaurenMDAnalysis(TaurenTraj):
         
         return
     
+    @core.log_args
     def _calc_rmsds_combined_chains(
             self,
             chain_list,
@@ -1369,6 +1360,7 @@ class TaurenMDAnalysis(TaurenTraj):
         
         return R.rmsd[:, 2][self._fslicer], filtered_selectors
     
+    @core.log_args
     def _calc_rmsds_separated_chains(
             self,
             chain_list,
@@ -1427,6 +1419,7 @@ class TaurenMDAnalysis(TaurenTraj):
             column_headers
             )
     
+    @core.log_args
     def _gen_chain_list(
             self,
             chains,
@@ -1451,6 +1444,7 @@ class TaurenMDAnalysis(TaurenTraj):
         
         return chain_list
     
+    @core.log_args
     def _filter_existent_selectors(self, selectors_list):
         
         # https://www.mdanalysis.org/docs/documentation_pages/selections.html#simple-selections
@@ -1471,6 +1465,7 @@ class TaurenMDAnalysis(TaurenTraj):
 
 class TaurenMDTraj(TaurenTraj):
     
+    @core.log_args
     def __init__(self, trajectory, topology):
         
         traj_ = mdtraj.load(trajectory, top=topology)
@@ -1527,6 +1522,7 @@ class TaurenMDTraj(TaurenTraj):
     def n_atoms(self):
         return self.trajectory.n_atoms
     
+    @core.log_args
     def _remove_solvent(
             self,
             *,
@@ -1570,6 +1566,7 @@ class TaurenMDTraj(TaurenTraj):
         self.original_traj = new_traj
         return
     
+    @core.log_args
     def image_molecules(
             self,
             *,
@@ -1608,6 +1605,7 @@ class TaurenMDTraj(TaurenTraj):
         else:
             return new_traj
     
+    @core.log_args
     def _align_traj(self, **kwargs):
         
         log.info(
@@ -1620,6 +1618,7 @@ class TaurenMDTraj(TaurenTraj):
         
         return "not implemented"
     
+    @core.log_args
     def _frames2file(
             self,
             frames_to_extract,
@@ -1646,6 +1645,7 @@ class TaurenMDTraj(TaurenTraj):
         
         return
     
+    @core.log_args
     def _save_traj(
             self,
             file_name,
@@ -1655,6 +1655,7 @@ class TaurenMDTraj(TaurenTraj):
         
         return
     
+    @core.log_args
     def _gen_chain_list(
             self,
             chains,
@@ -1698,6 +1699,7 @@ class TaurenMDTraj(TaurenTraj):
         
         return chain_list
     
+    @core.log_args
     def _calc_rmsds_combined_chains(
             self,
             chain_list,
@@ -1734,6 +1736,7 @@ class TaurenMDTraj(TaurenTraj):
             )
         return combined_rmsds, chain_list
     
+    @core.log_args
     def _atom_slice_traj(self, selector):
         """
         Slices trajectory according to selector.
@@ -1758,6 +1761,7 @@ class TaurenMDTraj(TaurenTraj):
         return sliced_traj
     
     @staticmethod
+    @core.log_args
     def _calc_rmsds(
             trajectory,
             *,
@@ -1797,6 +1801,7 @@ class TaurenMDTraj(TaurenTraj):
         
         return rmsds
     
+    @core.log_args
     def _calc_rmsds_separated_chains(
             self,
             chain_list,
@@ -1842,6 +1847,7 @@ class TrajObservables(list):
         
         return s
     
+    @core.log_args
     def append(self, *args, **kwargs):
         
         try:

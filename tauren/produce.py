@@ -18,12 +18,12 @@ Functions that perform combined operations that are related.
 #
 # Contributors to this file:
 # - João M.C. Teixeira (https://github.com/joaomcteixeira)
-from tauren import logger
-from tauren import plot
+from tauren import logger, core, plot
 
 log = logger.get_log(__name__)
 
 
+@core.log_args
 def rmsds_combined_chains(
         taurentraj,
         calc_rmsds_combined_chains,
@@ -72,6 +72,7 @@ def rmsds_combined_chains(
     return
 
 
+@core.log_args
 def rmsds_separated_chains(
         taurentraj,
         calc_rmsds_separated_chains,
@@ -147,6 +148,7 @@ def _get_key_list(key):
     return kl
 
 
+@core.log_args
 def _update_export_data(
         kwargs,
         data_dict,
@@ -161,6 +163,7 @@ def _update_export_data(
             kwargs["file_name"] = f"data_for_index_{index}.csv"
 
 
+@core.log_args
 def _update_single_plot_config(
         kwargs,
         index,
@@ -179,6 +182,7 @@ def _update_single_plot_config(
             kwargs["fig_name"] = f"{name}_data_for_index_{index}.pdf"
 
 
+@core.log_args
 def _update_multiple_plot_config(
         kwargs,
         index,

@@ -24,8 +24,7 @@ from collections import namedtuple
 import mdtraj as md
 import simtk.openmm.app as app
 
-from tauren import logger
-from tauren import tauren
+from tauren import logger, core, tauren
 
 log = logger.get_log(__name__)
 
@@ -56,6 +55,7 @@ def _validate_file_paths(func):
     return wrapper
 
 
+@core.log_args
 @_validate_file_paths
 def load_json_config(config_path):
     """
@@ -88,6 +88,7 @@ def load_json_config(config_path):
     return config_tuple
 
 
+@core.log_args
 def _load_topology(topo_file):
     
     if topo_file.endswith(".cif"):
@@ -109,6 +110,7 @@ def _load_topology(topo_file):
         raise TypeError("Unkown topology file type")
 
 
+@core.log_args
 def _load_mdtraj(traj_file, topology):
     
     return tauren.TaurenMDTraj(traj_file, topology)
