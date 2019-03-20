@@ -137,11 +137,10 @@ General project organization:
    -  ``tauren.py``: contains Tauren Trajectory classes.
     
       - ``TaurenTraj`` is an abstract class that provides an interface between the user and the MD analysis libs. **Polymorphism** *reigns* here.
-      - Classes implementing methods from the specific MD analysis libs should inherit from TaurenTraj and implement its *abstractmethods* accordingly.
-        - additional dunders can and should be implemented.
+      - Classes implementing methods from the specific MD analysis libs should inherit from ``TaurenTraj`` and implement its *abstractmethods* accordingly. Additional dunders can and should be implemented if needed.
       - There should be a dunder *abstractmethod* in ``TaurenTraj`` for every method there implemented that is an interface to a specific MD lib operation.
-      - Documented interface should be provided **only** by ``TaurenTraj``, from here, the program workflow is directed to the corresponding hidden methods of the specific subclasses thta configure the algorithms for the different MD analysis libs implemented. In this way, subclasses inheriting from ``TaurenTraj`` should provide **only** dunder methods.
-        - exceptions are allowed for **@properties**.
+      - Documented interface should be provided **only** by ``TaurenTraj``, from here, the program workflow is directed to the corresponding hidden methods of the specific subclasses thta configure the algorithms for the different MD analysis libs implemented. In this way, subclasses inheriting from ``TaurenTraj`` should provide **only** dunder methods. Exceptions are allowed for **@properties**.
+      - If a given subclass does not provides a routine for a given method in ``TaurenTraj``, a ``Not implemented`` message should be logged to warn the user and that action ignored.
       - **@staticmethods** and **@classmethods** should be testable by their *return* value.
 
    -  ``core.py``: variables and functions used system wide, commons, decorators,
