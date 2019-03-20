@@ -169,6 +169,11 @@ class TaurenTraj(ABC):
     
     @property
     def atom_selection(self):
+        """
+        String that defines the current atom selection.
+        
+        If not defined assumes "all".
+        """
         try:
             return self._atom_selection
         
@@ -1888,8 +1893,11 @@ class TaurenMDTraj(TaurenTraj):
 
 class TrajObservables(list):
     """
-    Stores observables obtained from traj analysis.
+    Stores observables obtained from trajectory analysis.
+    
+    Inherits from :obj:`list`.
     """
+    
     
     def __str__(self):
         
@@ -1903,8 +1911,23 @@ class TrajObservables(list):
         
         return s
     
+    
     @core.log_args
     def append(self, *args, **kwargs):
+        """
+        Appends data arguments to the observables list in
+        the form of a dictionary.
+        
+        A ``data`` argument is required. If not provided via ``data``
+        kwarg, the first positional argument is used.
+        
+        Positional arguments are stored with keys ``param_#``,
+        where ``#`` is a counting integer, starting from 1.
+        
+        Kwargs are stored with their key name.
+        
+        Overwrites list ``append`` method.
+        """
         
         try:
             data = kwargs["data"]
@@ -1919,9 +1942,7 @@ class TrajObservables(list):
                 "If no positional argument is passed, "
                 "a keyword parameter named 'data' must be passed"
                 )
-        
-        print(type(data))
-        
+            
         args_d = {}
         pos = 1
         for arg in args:
@@ -1951,9 +1972,17 @@ class TrajObservables(list):
         
         return
     
+    
     def list(self):
+        """
+        Lists the stored data ordered by their indexes.
+        """
         return str(self)
     
+    
     def last_index(self):
+        """
+        Returns the number of the last index.
+        """
         
         return len(self) - 1
