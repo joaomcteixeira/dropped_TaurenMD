@@ -212,6 +212,9 @@ class TaurenTraj(ABC):
             ):
         """
         Updates the current frame slicing object.
+        
+        start and end are ¡Python indexes!
+        start from 0 and end is NOT included.
         """
         
         self._check_correct_slice(end)
@@ -299,12 +302,32 @@ class TaurenTraj(ABC):
     def align_traj(
             self,
             *,
-            weights="mass",
-            file_name="aligned_traj.dcd",
             inplace=True,
+            file_name="aligned_traj.dcd",
+            **kwargs,
             ):
         """
-        Aligns trajectory to the topology structure (reference).
+        Aligns trajectory to the topology (reference).
+        
+        Currently only implemented for :mdanalysis:`MDAnalysis <>`
+        subroutines.
+        
+        Parameters
+        ----------
+        inplace : :obj:`bool`
+            Whether to align the trajectory in place or export the
+            aligned trajectory to a new object/file.
+            If ``False``, *file_name* is used.
+            Defaults to ``True``.
+            
+            **MDAnalysis:**
+                Does NOT return new object, saves aligned trajectory
+                to new file instead.
+        
+        file_name : :obj:`str`
+            The name of the file of the aligned trajectory.
+            Trajectory type is deduced from file extension.
+            User only if *inplace* is ``True``, ignored otherwise.
         """
         
         log.info("* Aligning trajectory... ")
@@ -319,9 +342,9 @@ class TaurenTraj(ABC):
             raise TypeError("inplace is NOT bool.")
         
         self._align_traj(
-            weights,
             file_name,
             inplace,
+            **kwargs,
             )
         
         log.info("    done")
@@ -348,7 +371,7 @@ class TaurenTraj(ABC):
     @core.log_args
     def frame_slice(
             self,
-            start=1,
+            start=None,
             end=None,
             step=1,
             ):
@@ -360,12 +383,12 @@ class TaurenTraj(ABC):
         start : int
             The starting frame.
             Frame index starts at 1.
-            Defaults to None, slices from the start of trajectory.
+            Defaults to None, slices from the first frame.
         
         end : int
             The end frame for the new slicing (INCLUSIVE).
             END should be lower or equal than the traj length.
-            Defaults to None, slices until the end of the trajectory.
+            Defaults to None, slices to the last frame.
         
         step : int
             Integer value which determines the increment between
@@ -413,21 +436,22 @@ class TaurenTraj(ABC):
         self._update_traj_slicer(start - 1, end, step)
         
         log.info("    done.")
-        
         return
     
     @core.log_args
     def set_atom_selection(self, selector, **kwargs):
         """
-        Sets the current atom selection.
+        Sets the atom selection.
         
         Atom selection will be used in subsequent operations.
         
         Parameters
         ----------
         selector : str
-            The selection string. This may deppend on the
-            Trajectory library type chosen for the calculation.
+            The selection string. This may deppend on the type of
+            MD analysis library chosen for the calculation.
+            Please refer to the MD analysis library
+            specific documentation.
         
         Raises
         ------
@@ -491,10 +515,10 @@ class TaurenTraj(ABC):
         Exceptions
         ----------
         TypeError
-            If frames is not of string type.
+            If *frames* is not of string type.
             
         ValueError
-            If frames string is not consistent with parameter
+            If *frames* string is not consistent with parameter
             description.
         """
         
@@ -671,7 +695,7 @@ class TaurenTraj(ABC):
     
         Parameters
         ----------
-        file_name : str
+        file_name : :obj:`str`
             Name of the output trajectory file.
             File extention is taken from file_name.
         """
@@ -700,10 +724,6 @@ class TaurenTraj(ABC):
         """
         Calculates combined RMSDs for a set of chains.
         
-        Calculated RMSDs are stored in the form of np.ndarray
-        in trajectory's observables attribute.
-        Storage key is the tuple of strings: (storage_key, chains).
-        
         Parameters
         ----------
         chains : str or list of identifiers, optional
@@ -716,7 +736,7 @@ class TaurenTraj(ABC):
             
             With list, use a list of identifiers: [1,2,4] or ["A", "D"].
             
-            Remember that:
+            **Remember that:**
             # when using **MDAnalysis**, identifiers are the segid
             characters.
             # when using **MDTraj**, identifiers are digits that
@@ -802,7 +822,9 @@ class TaurenTraj(ABC):
         """
         Checks validity of <chains> input argument.
         chains should be string of comma separated chars or digits
-        or list of chars or digits. Raise TypeError otherwise.
+        or list of chars or digits.
+        Returns None if *chains* pass the check,
+        raises TypeError otherwise.
         """
         
         def valid_chain_id(c):
@@ -862,6 +884,9 @@ class TaurenTraj(ABC):
         numpy.array of shape=(X,)
             The returned array should be sliced according to the
             current frame slicer (self._fslicer).
+        
+        list of strs
+            List of chains IDs evaluated.
         """
         
         pass
@@ -885,12 +910,6 @@ class TaurenTraj(ABC):
         """
         Calculates RMSDs for each chain separately.
         
-        Calculated RMSDs are stored in the form of np.ndarray
-        in trajectory's observables attribute.
-        Storage key is the tuple of strings:
-        (storage_key, chains_headers), where chains_headers is a "-"
-        separated list of the chainids parsed (A-B-C).
-        
         Parameters
         ----------
         chains : str or list of idetifiers, optional
@@ -900,7 +919,7 @@ class TaurenTraj(ABC):
             
             With list, use a list of identifiers: [1,2,4] or ["A", "D"].
             
-            Remember that:
+            **Remember that:**
             # when using **MDAnalysis**, identifiers are the segid
             characters.
             # when using **MDTraj**, identifiers are digits that
@@ -994,7 +1013,7 @@ class TaurenTraj(ABC):
         
         Returns
         -------
-        numpy.array of shape=(Y,X)
+        numpy.array, shape=(Y,X)
             Where Y is the number of frames and X number of chains.
             The returned array should be sliced according to the
             current frame slicer (self._fslicer).
@@ -1017,9 +1036,9 @@ class TaurenTraj(ABC):
         
         log.debug(f"identifier: {identifiers}")
         
-        lid = list(map(lambda x: f"{selection} {x}", identifiers))
+        id_lst = list(map(lambda x: f"{selection} {x}", identifiers))
         
-        selector = f" {boolean} ".join(lid)
+        selector = f" {boolean} ".join(id_lst)
         
         log.debug(f"selector: {selector}")
         
@@ -1031,7 +1050,7 @@ class TaurenTraj(ABC):
             self,
             index,
             prefix='',
-            sufix="csv",
+            suffix="csv",
             file_name=None,
             sep=",",
             header="",
@@ -1039,7 +1058,11 @@ class TaurenTraj(ABC):
             **kwargs,
             ):
         """
-        Exports data arrays to file.
+        Exports data to file.
+        
+        Exporting template is selected automatically from data type.
+        The *tojson* parameter forces data to be exported to JSON file.
+        If data type can be identified, exports to JSON.
         
         Parameters
         ----------
@@ -1050,29 +1073,60 @@ class TaurenTraj(ABC):
         prefix : :obj:`str`, optional
             A prefix to add to the naming attribute in the key object.
             Defaults to empty string.
-            If file_name is given, prefix and key naming are not considered.
+            If *file_name* is given, prefix and key naming are not considered.
         
-        sufix : :obj:`str`, optional
+        suffix : :obj:`str`, optional
             The file extention.
             Defaults to 'csv'.
             
         file_name : :obj:`str`, optional
             The name of the file. Prevails over prefix and key naming.
-            Defaults to None.
+            Defaults to ``None``.
         
-        plaintxt : :obj:`bool`
-            If True exports data dictionary as plain text (JSON).
-            If False export type is select from data type.
-            Defaults to False.
+        tojson : :obj:`bool`
+            If ``True`` exports data dictionary to a JSON file.
+            If ``False`` exports according to data type.
+            Defaults to ``False``.
         
         sep : :obj:`str`, optional
             The column separator for np.ndarray data type.
-            Defaults to comma ",".
+            Defaults to comma ``,``.
         
         header : :obj:`str`, optional
             Any text you wish to add as comment as file header.
             Headers are identified by "#".
-            Defaults to nothing.
+            Defaults to empty string.
+        """
+        
+        filename = self._gen_export_file_name(
+            file_name,
+            index,
+            prefix,
+            suffix,
+            )
+        
+        log.info(f"* Exporting {filename}")
+        
+        log.debug(f"data type: {type(self.observables[index]['data'])}")
+        
+        if tojson:
+            self._export_data_json(index, filename)
+        
+        else:
+            if isinstance(self.observables[index]["data"], np.ndarray):
+                self._export_data_array(index, filename, sep, header=header)
+        
+            else:
+                self._export_data_json(index, filename)
+        
+        log.info(f"    saved {filename}")
+        
+        return
+    
+    @core.log_args
+    def _gen_export_file_name(self, file_name, index, prefix, suffix):
+        """
+        Generates a filename based on the data information.
         """
         
         tablename = [
@@ -1087,26 +1141,10 @@ class TaurenTraj(ABC):
         filename = (
             f"{prefix}"
             f"{next((x for x in tablename if x), f'data_index_{index}')}"
-            f".{sufix}"
+            f".{suffix}"
             )
         
-        log.info(f"* Exporting {filename}")
-        
-        log.debug(f"data type: {type(self.observables[index]['data'])}")
-        
-        if plaintxt:
-            self._export_data_plaintxt(index, filename)
-        
-        else:
-            if isinstance(self.observables[index]["data"], np.ndarray):
-                self._export_data_array(index, filename, sep, header=header)
-        
-            else:
-                self._export_data_plaintxt(index, filename)
-        
-        log.info(f"    saved {filename}")
-        
-        return
+        return filename
     
     @core.log_args
     def _export_data_array(self, index, filename, sep, header=''):
@@ -1145,19 +1183,26 @@ class TaurenTraj(ABC):
         return
     
     @core.log_args
-    def _export_data_plaintxt(self, index, filename):
+    def _export_data_json(self, index, filename):
         """
         Template to export data as plain text.
         """
         
         log.debug("exporting data as plain text")
         
-        json.dump(
-            self.observables[index],
-            filename,
-            indent=4,
-            sort_keys=True,
-            )
+        results_copy = self.observables[index].copy()
+        
+        # adapts data before exporting
+        if isinstance(results_copy["data"], np.ndarray):
+            results_copy["data"] = results_copy["data"].tolist()
+        
+        with open(filename, 'w') as fh:
+            json.dump(
+                results_copy,
+                fh,
+                indent=4,
+                sort_keys=True,
+                )
     
         return
 
@@ -1224,35 +1269,25 @@ class TaurenMDAnalysis(TaurenTraj):
     
     @core.log_args
     def _remove_solvent(self, **kwargs):
-        """
-        Removes solvent
-        
-        NOT IMPLEMENTED
-        """
-        
-        log.info("* Removed solvent:")
-        
+        log.info("* solvent removed")
         self._rmv_solvent_selector = "(protein or nucleic)"
-        
         return
     
     def _undo_rmv_solvent(self):
-        
         log.debug("activated solvent")
         self._rmv_solvent_selector = "all"
-        
         return
     
     def _image_molecules(self, **kwargs):
         log.info("image_molecules method not implemented for MDAnalaysis")
-        return
+        return "not implemented"
     
     @core.log_args
     def _align_traj(
             self,
-            weights,
             file_name,
             inplace,
+            **kwargs,
             ):
         
         # https://www.mdanalysis.org/docs/documentation_pages/analysis/align.html#MDAnalysis.analysis.align.AlignTraj
