@@ -442,40 +442,17 @@ class TaurenTraj(ABC):
             If any parameter is not integer type.
         
         ValueError
-            Terminates if any parameter equals 0.
+            If slice renders empty selection.
         """
         
+        # assigns default values here because
         # None values can be received from the config.json file
         start = start or 1
         end = end or len(self.full_frames_list)
         step = step or 1
         
         log.info(f"* Slicing trajectory [{start}, {end}, {step}]...")
-        
-        _err = "parameter should be integer"
-        
-        if not isinstance(start, int):
-            raise TypeError(f"start {_err}: '{type(start)}'")
-        
-        if not isinstance(end, int):
-            raise TypeError(f"end {_err}: '{type(end)}'")
-        
-        if not isinstance(step, int):
-            raise TypeError(f"step {_err}: '{type(step)}'")
-        
-        if start == 0 or end == 0 or step == 0:
-            _err = (
-                "* ERROR * "
-                "Traj frames indexes start from 1. "
-                "You can NOT slice from 0. "
-                "Remember 'end' is INCLUSIVE. "
-                "Review your configuration file and rerun."
-                )
-            log.info(_err)
-            sys.exit("* EXIT *")
-        
         self._update_traj_slicer(start - 1, end, step)
-        
         log.info("    done.")
         return
     
