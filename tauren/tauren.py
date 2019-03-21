@@ -46,7 +46,10 @@ class TaurenTraj(ABC):
     filenametranslation = str.maketrans(",:() ", "----_")
     
     @core.log_args
-    def __init__(self):
+    def __init__(self, trajectory, topology):
+        
+        self.trajpath = trajectory
+        self.topopath = topology
         
         self._set_full_frames_list()
         self._update_traj_slicer(
@@ -281,8 +284,18 @@ class TaurenTraj(ABC):
     def remove_solvent(self, **kwargs):
         """
         Removes solvent from trajectory.
-        """
         
+        Parameters
+        ----------
+        exclude : :obj:`list`
+            Available only when using :mdtrajdoc:`MDTraj <>`
+            as :doctrajtype:`trajectory type <>`.
+            List of solvent residue names to retain in the new
+            trajectory.
+            Defaults to None.
+            :mdtdocrmvsol:`MDTraj remove_solvent documentation <>`.
+        """
+        log.info("* Removing solvent...")
         self._remove_solvent(**kwargs)
     
     @abstractmethod
@@ -1269,7 +1282,7 @@ class TaurenMDAnalysis(TaurenTraj):
         # mdanalysis specific method
         self.undo_rmv_solvent()
         
-        super().__init__()
+        super().__init__(trajectory, topology)
         
         return
     
@@ -1319,8 +1332,8 @@ class TaurenMDAnalysis(TaurenTraj):
     
     @core.log_args
     def _remove_solvent(self, **kwargs):
-        log.info("* solvent removed")
         self._rmv_solvent_selector = "(protein or nucleic)"
+        log.info("    solvent removed")
         return
     
     def _undo_rmv_solvent(self):
@@ -1581,13 +1594,17 @@ class TaurenMDTraj(TaurenTraj):
     @core.log_args
     def __init__(self, trajectory, topology):
         
-        traj_ = mdtraj.load(trajectory, top=topology)
-        self.original_traj = traj_
-        self.topology = traj_.topology
+        self._read_traj_top_input(trajectory, topology)
         
-        super().__init__()
+        super().__init__(trajectory, topology)
         
         return
+    
+    def _read_traj_top_input(self, traj_path, topo_path):
+        
+        traj_ = mdtraj.load(traj_path, top=topo_path)
+        self.original_traj = traj_
+        self.topology = traj_.topology
     
     def _set_full_frames_list(self):
         super()._set_full_frames_list(self.original_traj.n_frames)
@@ -1646,27 +1663,7 @@ class TaurenMDTraj(TaurenTraj):
         Removes solvent from Trajectory.
         
         Performs: MDTraj.Trajectory.remove_solvent()
-        
-        Parameters
-        ----------
-        exclude : :obj:`list`
-            List of solvent residue names to retain in the new
-            trajectory.
-            Defaults to None.
-        
-        inplace : :obj:`bool`
-            Whether trajectory is modified in place or a copy
-            is created (returned).
-            If ``True``, the :att:`~original_traj` is replaced.
-            Defaults to True.
-            .. deprecated:: 0.6.2
-        
-        Return
-        ------
-        Trajectory.
-            **If** ``inplace`` is ``True``. Otherwise, returns ``None``.
-        """
-        log.info("* Removing solvent...")
+        """        
         log.info(f"    received trajectory: {self.trajectory}")
         
         new_traj = self.trajectory.remove_solvent(
@@ -1680,7 +1677,7 @@ class TaurenMDTraj(TaurenTraj):
         return
     
     def _undo_rmv_solvent(self):
-        log.info("This method is not implemented for MDTraj subroutines")
+        self._read_traj_top_input(self.trajpath, self.topopath)
     
     @core.log_args
     def _image_molecules(
