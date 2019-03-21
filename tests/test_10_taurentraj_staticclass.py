@@ -103,3 +103,9 @@ def test_gen_chain_list_10():
     
     with pytest.raises(ValueError):
         traj._gen_chain_list(chains)
+
+def test_gen_chain_list_11():
+    
+    chainlist = traj._gen_chain_list("A,,B,C,")
+    
+    assert chainlist == ["A", "B", "C"]
