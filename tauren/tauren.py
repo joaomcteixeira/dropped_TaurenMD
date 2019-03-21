@@ -733,8 +733,8 @@ class TaurenTraj(ABC):
         ----------
         chains : str or list of identifiers, optional
             Defaults to "all", all chains are used.
-            BUT, previous selection is considered, therefore, chains
-            will subselect over a previous
+            Previous selection is considered, therefore, chains
+            will subselect over the current
             :meth:`~TaurenTraj.set_atom_selection`.
             
             With str, use: "1" or comma separated identifers, "1,2,4".
@@ -784,7 +784,7 @@ class TaurenTraj(ABC):
         
         storage_key = storage_key or "rmsds_combined_chains"
         
-        self._check_chains_argument(chains)
+        # self._check_chains_argument(chains)
                 
         chain_list = self._gen_chain_list(chains)  # abstractmethod
         
@@ -821,55 +821,55 @@ class TaurenTraj(ABC):
         
         return self.observables.last_index()
     
-    @staticmethod
-    @core.log_args
-    def _check_chains_argument(chains):
-        """
-        Checks validity of <chains> input argument.
-        chains should be string of comma separated chars or digits
-        or list of chars or digits.
-        Returns None if *chains* pass the check,
-        raises TypeError otherwise.
-        """
+    # @staticmethod
+    # @core.log_args
+    # def _check_chains_argument(chains):
+        # """
+        # Checks validity of <chains> input argument.
+        # chains should be string of comma separated chars or digits
+        # or list of chars or digits.
+        # Returns None if *chains* pass the check,
+        # raises TypeError otherwise.
+        # """
         
-        def valid_chain_id(c):
+        # def valid_chain_id(c):
             
-            return (isinstance(c, int)
-                    or isinstance(c, str) and (c.isdigit() or c.isalpha()))
+            # return (isinstance(c, int)
+                    # or isinstance(c, str) and (c.isdigit() or c.isalpha()))
         
-        if isinstance(chains, str):
-            commafree = chains.replace(",", "")
-            if commafree.isdigit() or commafree.isalpha():
-                return
+        # if isinstance(chains, str):
+            # commafree = chains.replace(",", "")
+            # if commafree.isdigit() or commafree.isalpha():
+                # return
         
-            else:
-                _err = (
-                    "chains identifiers should be letters or digits, "
-                    "separated by comma ','. "
-                    f"Wrong input: {chains}"
-                    )
-                log.debug(_err)
-                raise ValueError(_err)
+            # else:
+                # _err = (
+                    # "chains identifiers should be letters or digits, "
+                    # "separated by comma ','. "
+                    # f"Wrong input: {chains}"
+                    # )
+                # log.debug(_err)
+                # raise ValueError(_err)
         
-        elif isinstance(chains, list):
-            if all(valid_chain_id(c) for c in chains):
-                return
+        # elif isinstance(chains, list):
+            # if all(valid_chain_id(c) for c in chains):
+                # return
             
-            else:
-                _err = (
-                    "Chains identifiers in list should be letters or digits. "
-                    f"Wrong input found: {chains}"
-                    )
-                log.debug(_err)
-                raise ValueError(_err)
+            # else:
+                # _err = (
+                    # "Chains identifiers in list should be letters or digits. "
+                    # f"Wrong input found: {chains}"
+                    # )
+                # log.debug(_err)
+                # raise ValueError(_err)
             
-        else:
-            _err = (
-                "chains arguments should be of type str or list. "
-                f"'{type(chains)}' given."
-                )
-            log.debug(_err)
-            raise TypeError(_err)
+        # else:
+            # _err = (
+                # "chains arguments should be of type str or list. "
+                # f"'{type(chains)}' given."
+                # )
+            # log.debug(_err)
+            # raise TypeError(_err)
     
     @abstractmethod
     def _calc_rmsds_combined_chains(self):
@@ -896,11 +896,58 @@ class TaurenTraj(ABC):
         
         pass
         
-    @abstractmethod
+    # @abstractmethod
+    @core.log_args
     def _gen_chain_list(self, chains):
         """
         Genereates a list of chains based on a <chains> string value.
+        
+        Parameters
+        ----------
+        chains : str or list of identifiers, optional
+            
+            With str, use: "1" or comma separated identifers, "1,2,4".
+            
+            With list, use a list of identifiers: [1,2,4] or ["A", "D"].
+            
+            If "all" specific subclass method must be called.
         """
+        
+        def valid(c):
+            
+            return (isinstance(c, int)
+                    or isinstance(c, str) and (c.isdigit() or c.isalpha()))
+        
+        
+        if chains == "all":
+            return self._gen_chain_list_all()
+        
+        elif isinstance(chains, int):
+            return [str(chains)]
+        
+        elif isinstance(chains, str):
+            # in case split gives empty strings in list
+            chains = [c for c in chains.split(",") if c]
+        
+        
+        if isinstance(chains, list):
+        
+            if all(valid(c) for c in chains):
+                return [str(c) for c in chains]
+            
+            else:
+                raise ValueError(
+                "Values in chains list must be STRING letters or digits or INT"
+                )
+        
+        else:
+            raise TypeError("chains must be STRING or LIST type")
+            
+    
+    @abstractmethod
+    def _gen_chain_list_all(self):
+        # what each subclass should return when *chains* is "all"
+        # in _gen_chain_list()
         pass
     
     @core.log_args
@@ -1222,7 +1269,7 @@ class TaurenMDAnalysis(TaurenTraj):
         self.original_traj = self.universe.trajectory
         
         # mdanalysis specific method
-        self.reset_rmv_solvent()
+        self.undo_rmv_solvent()
         
         super().__init__()
         
@@ -1476,30 +1523,35 @@ class TaurenMDAnalysis(TaurenTraj):
             column_headers
             )
     
+    @staticmethod
     @core.log_args
-    def _gen_chain_list(
-            self,
-            chains,
-            ):
+    def _gen_chain_list_all(chains):
+        return list(string.ascii_letters + string.digits)
+    
+    # @core.log_args
+    # def _gen_chain_list(
+            # self,
+            # chains,
+            # ):
         
-        log.debug(f"input chains: {chains}")
+        # log.debug(f"input chains: {chains}")
         
-        if chains == "all":
-            chain_list = list(string.ascii_letters + string.digits)
+        # if chains == "all":
+            # chain_list = list(string.ascii_letters + string.digits)
         
-        elif isinstance(chains, str) and chains.count(",") == 0:
-            chain_list = [chains]
+        # elif isinstance(chains, str) and chains.count(",") == 0:
+            # chain_list = [chains]
         
-        elif isinstance(chains, str) and chains.count(",") > 0:
-            chain_list = chains.split(",")
+        # elif isinstance(chains, str) and chains.count(",") > 0:
+            # chain_list = chains.split(",")
         
-        else:
-            raise ValueError("could NOT read chains.")
+        # else:
+            # raise TypeError("Chains should be string type")
         
-        log.debug(f"return chain_list: {chain_list}")
-        assert isinstance(chain_list, list), "Not a list!"
+        # log.debug(f"return chain_list: {chain_list}")
+        # assert isinstance(chain_list, list), "Not a list!"
         
-        return chain_list
+        # return chain_list
     
     @core.log_args
     def _filter_existent_selectors(self, selectors_list):
@@ -1717,48 +1769,52 @@ class TaurenMDTraj(TaurenTraj):
         return
     
     @core.log_args
-    def _gen_chain_list(
-            self,
-            chains,
-            ):
+    def _gen_chain_list_all(self):
+        return list(range(self.trajectory.n_chains))
+    
+    # @core.log_args
+    # def _gen_chain_list(
+            # self,
+            # chains,
+            # ):
         
-        log.debug(chains)
+        # log.debug(chains)
         
-        if chains == "all":
+        # if chains == "all":
             
-            chain_list = list(range(self.trajectory.n_chains))
+            # chain_list = list(range(self.trajectory.n_chains))
         
-        elif isinstance(chains, str) \
-                and chains.isalpha() or chains.isdigit():
+        # elif isinstance(chains, str) \
+                # and chains.isalpha() or chains.isdigit():
             
-            chain_list = [chains]
+            # chain_list = [chains]
         
-        elif isinstance(chains, str) and chains.count(",") > 0:
+        # elif isinstance(chains, str) and chains.count(",") > 0:
             
-            chain_list = chains.split(",")
+            # chain_list = chains.split(",")
         
-        elif isinstance(chains, list):
+        # elif isinstance(chains, list):
             
-            try:
-                chain_list = list(int(i) for i in chains.split(","))
+            # try:
+                # chain_list = list(int(i) for i in chains.split(","))
             
-            except TypeError as e:
-                _ = f"Chainid values must be integers: {chains}"
-                log.debug(e)
-                log.info(_)
-                raise TypeError(_)
+            # except TypeError as e:
+                # _ = f"Chainid values must be integers: {chains}"
+                # log.debug(e)
+                # log.info(_)
+                # raise TypeError(_)
         
-        try:
-            log.debug(chain_list)
+        # try:
+            # log.debug(chain_list)
         
-        except UnboundLocalError as e:
-            log.debug(e)
-            log.info("* ERROR * <chain_list> not defined")
-            sys.exit("* Aborting *")
+        # except UnboundLocalError as e:
+            # log.debug(e)
+            # log.info("* ERROR * <chain_list> not defined")
+            # sys.exit("* Aborting *")
         
-        assert isinstance(chain_list, list), "Should be list type!"
+        # assert isinstance(chain_list, list), "Should be list type!"
         
-        return chain_list
+        # return chain_list
     
     @core.log_args
     def _calc_rmsds_combined_chains(
