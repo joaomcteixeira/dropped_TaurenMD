@@ -22,11 +22,13 @@ traj = load.load_traj(
     traj_type=trajtype,
     )
 
+
 def test_gen_chain_list_all():
     
     chainlist = traj._gen_chain_list("all")
     
     assert chainlist == list(string.ascii_letters + string.digits)
+
 
 def test_rmv_solvent_1():
     
@@ -34,15 +36,18 @@ def test_rmv_solvent_1():
     
     assert traj.atom_selection == "(protein or nucleic) and all"
 
+
 def test_undo_rmv_solvent_1():
     
     traj.undo_rmv_solvent()
     
     assert traj.atom_selection == "all and all"
 
+
 def test_image_molecules_1():
     
     assert traj.image_molecules() == "not implemented"
+
 
 def test_filter_existent_selectors_1():
     
@@ -52,9 +57,20 @@ def test_filter_existent_selectors_1():
     
     assert result == ["segid A", "segid B"]
 
+
 def test_filter_existent_selectors_2():
     
     sel = "segid A, segid B, segid Z"
     
     with pytest.raises(TypeError):
         traj._filter_existent_selectors(sel)
+
+
+def test_frames_to_list_1():
+    assert traj._get_frame_list("all") == list(range(1, 101, 1))
+    
+
+def test_frames2file_1():
+    
+    traj._frames2file([1], "__{}.pdb")
+    os.remove("__0.pdb")
