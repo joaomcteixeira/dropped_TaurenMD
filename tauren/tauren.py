@@ -595,8 +595,9 @@ class TaurenTraj(ABC):
                 return self.full_frames_list[int(frames) - 1]
             
             elif frames.replace(",", "").isdigit():
-                return [self.full_frames_list[int(f) - 1]
-                    for f in frames.split(",") if f]
+                # _ for flake8 :-)
+                _ = self.full_frames_list
+                return [_[int(f) - 1] for f in frames.split(",") if f]
                 
             elif ":" in frames and frames.replace(":", "").isdigit():
                 
@@ -830,63 +831,16 @@ class TaurenTraj(ABC):
             "identifier": chains,
             "ref_frame": ref_frame,
             "columns": ["frames"] + column_headers,
-            "name": f"{storage_key}_{self.atom_selection}_{chains}".\
-                translate(self.filenametranslation),
+            "name": (
+                f"{storage_key}"
+                f"_{self.atom_selection}"
+                f"_{chains}"
+                ).translate(self.filenametranslation)
             }
         
         self.observables.append(**{**kwargs, **storagedata})
         
         return self.observables.last_index()
-    
-    # @staticmethod
-    # @core.log_args
-    # def _check_chains_argument(chains):
-        # """
-        # Checks validity of <chains> input argument.
-        # chains should be string of comma separated chars or digits
-        # or list of chars or digits.
-        # Returns None if *chains* pass the check,
-        # raises TypeError otherwise.
-        # """
-        
-        # def valid_chain_id(c):
-            
-            # return (isinstance(c, int)
-                    # or isinstance(c, str) and (c.isdigit() or c.isalpha()))
-        
-        # if isinstance(chains, str):
-            # commafree = chains.replace(",", "")
-            # if commafree.isdigit() or commafree.isalpha():
-                # return
-        
-            # else:
-                # _err = (
-                    # "chains identifiers should be letters or digits, "
-                    # "separated by comma ','. "
-                    # f"Wrong input: {chains}"
-                    # )
-                # log.debug(_err)
-                # raise ValueError(_err)
-        
-        # elif isinstance(chains, list):
-            # if all(valid_chain_id(c) for c in chains):
-                # return
-            
-            # else:
-                # _err = (
-                    # "Chains identifiers in list should be letters or digits. "
-                    # f"Wrong input found: {chains}"
-                    # )
-                # log.debug(_err)
-                # raise ValueError(_err)
-            
-        # else:
-            # _err = (
-                # "chains arguments should be of type str or list. "
-                # f"'{type(chains)}' given."
-                # )
-            # log.debug(_err)
-            # raise TypeError(_err)
     
     @abstractmethod
     def _calc_rmsds_combined_chains(self):
@@ -931,10 +885,8 @@ class TaurenTraj(ABC):
         """
         
         def valid(c):
-            
             return (isinstance(c, int)
                     or isinstance(c, str) and (c.isdigit() or c.isalpha()))
-        
         
         if chains == "all":
             return self._gen_chain_list_all()
@@ -946,7 +898,6 @@ class TaurenTraj(ABC):
             # in case split gives empty strings in list
             chains = [c for c in chains.split(",") if c]
         
-        
         if isinstance(chains, list):
         
             if all(valid(c) for c in chains):
@@ -954,12 +905,12 @@ class TaurenTraj(ABC):
             
             else:
                 raise ValueError(
-                "Values in chains list must be STRING letters or digits or INT"
-                )
+                    "Values in chains list must be"
+                    " STRING letters or digits or INT"
+                    )
         
         else:
             raise TypeError("chains must be STRING or LIST type")
-            
     
     @abstractmethod
     def _gen_chain_list_all(self):
@@ -1059,8 +1010,11 @@ class TaurenTraj(ABC):
             "identifier": chains,
             "ref_frame": ref_frame,
             "columns": ["frames"] + chains_headers,
-            "name": f"{storage_key}_{self.atom_selection}_{chains}".\
-                translate(self.filenametranslation),
+            "name": (
+                f"{storage_key}"
+                f"_{self.atom_selection}"
+                f"_{chains}"
+                ).translate(self.filenametranslation)
             }
         
         self.observables.append(**{**kwargs, **storagedata})
@@ -1123,7 +1077,7 @@ class TaurenTraj(ABC):
             file_name=None,
             sep=",",
             header="",
-            plaintxt=False,
+            tojson=False,
             **kwargs,
             ):
         """
@@ -1205,7 +1159,7 @@ class TaurenTraj(ABC):
             ]
         
         if prefix:
-            prefix += _
+            prefix += "_"
         
         filename = (
             f"{prefix}"
@@ -1235,8 +1189,9 @@ class TaurenTraj(ABC):
                 ))
         
         except KeyError:
-            columns = [f"column_{i}"
-                for i in range(self.observables[index]["data"].shape[0])]
+            columns = \
+                [f"column_{i}" for i in range(
+                    self.observables[index]["data"].shape[0])]
                 
         header += ','.join(columns)
         
@@ -1373,10 +1328,6 @@ class TaurenMDAnalysis(TaurenTraj):
             frames_to_extract,
             pdb_name_fmt,
             ):
-        """
-        frames_to_extract, list of frames index (int)
-        pdb_name_fmt, "prefix_{FORMATTING CONDITION}.extension"
-        """
         
         # frames are treated separatelly to allow exception capture and log
         # MDAnalysis frames are 0-indexed
@@ -1538,31 +1489,6 @@ class TaurenMDAnalysis(TaurenTraj):
     def _gen_chain_list_all():
         return list(string.ascii_letters + string.digits)
     
-    # @core.log_args
-    # def _gen_chain_list(
-            # self,
-            # chains,
-            # ):
-        
-        # log.debug(f"input chains: {chains}")
-        
-        # if chains == "all":
-            # chain_list = list(string.ascii_letters + string.digits)
-        
-        # elif isinstance(chains, str) and chains.count(",") == 0:
-            # chain_list = [chains]
-        
-        # elif isinstance(chains, str) and chains.count(",") > 0:
-            # chain_list = chains.split(",")
-        
-        # else:
-            # raise TypeError("Chains should be string type")
-        
-        # log.debug(f"return chain_list: {chain_list}")
-        # assert isinstance(chain_list, list), "Not a list!"
-        
-        # return chain_list
-    
     @core.log_args
     def _filter_existent_selectors(self, selectors_list):
         
@@ -1654,7 +1580,7 @@ class TaurenMDTraj(TaurenTraj):
         Removes solvent from Trajectory.
         
         Performs: MDTraj.Trajectory.remove_solvent()
-        """        
+        """
         log.info(f"    received trajectory: {self.trajectory}")
         
         new_traj = self.trajectory.remove_solvent(
@@ -1729,10 +1655,6 @@ class TaurenMDTraj(TaurenTraj):
             frames_to_extract,
             pdb_name_fmt,
             ):
-        """
-        frames_to_extract, list of frames index (int)
-        pdb_name_fmt, "prefix_{FORMATTING CONDITION}.extension"
-        """
         
         # MDTraj is 0-indexed
         for frame in [f - 1 for f in frames_to_extract]:
@@ -1764,50 +1686,6 @@ class TaurenMDTraj(TaurenTraj):
     @core.log_args
     def _gen_chain_list_all(self):
         return list(range(self.trajectory.n_chains))
-    
-    # @core.log_args
-    # def _gen_chain_list(
-            # self,
-            # chains,
-            # ):
-        
-        # log.debug(chains)
-        
-        # if chains == "all":
-            
-            # chain_list = list(range(self.trajectory.n_chains))
-        
-        # elif isinstance(chains, str) \
-                # and chains.isalpha() or chains.isdigit():
-            
-            # chain_list = [chains]
-        
-        # elif isinstance(chains, str) and chains.count(",") > 0:
-            
-            # chain_list = chains.split(",")
-        
-        # elif isinstance(chains, list):
-            
-            # try:
-                # chain_list = list(int(i) for i in chains.split(","))
-            
-            # except TypeError as e:
-                # _ = f"Chainid values must be integers: {chains}"
-                # log.debug(e)
-                # log.info(_)
-                # raise TypeError(_)
-        
-        # try:
-            # log.debug(chain_list)
-        
-        # except UnboundLocalError as e:
-            # log.debug(e)
-            # log.info("* ERROR * <chain_list> not defined")
-            # sys.exit("* Aborting *")
-        
-        # assert isinstance(chain_list, list), "Should be list type!"
-        
-        # return chain_list
     
     @core.log_args
     def _calc_rmsds_combined_chains(
@@ -1947,7 +1825,6 @@ class TrajObservables(list):
     Inherits from :obj:`list`.
     """
     
-    
     def __str__(self):
         
         s = ""
@@ -1959,7 +1836,6 @@ class TrajObservables(list):
                 s += "\n"
         
         return s
-    
     
     @core.log_args
     def append(self, *args, **kwargs):
@@ -2008,8 +1884,7 @@ class TrajObservables(list):
                     )
             
             args_d[key] = arg
-            pos += 1    
-        
+            pos += 1
         
         if set(args_d.keys()).intersection(set(kwargs.keys())):
             raise ValueError(
@@ -2021,13 +1896,11 @@ class TrajObservables(list):
         
         return
     
-    
     def list(self):
         """
         Lists the stored data ordered by their indexes.
         """
         return str(self)
-    
     
     def last_index(self):
         """
