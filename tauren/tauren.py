@@ -365,9 +365,7 @@ class TaurenTraj(ABC):
         Images molecules.
         """
         
-        self._image_mocules(**kwargs)
-        
-        return
+        return self._image_molecules(**kwargs)
     
     @abstractmethod
     def _image_molecules(self):
@@ -1525,7 +1523,7 @@ class TaurenMDAnalysis(TaurenTraj):
     
     @staticmethod
     @core.log_args
-    def _gen_chain_list_all(chains):
+    def _gen_chain_list_all():
         return list(string.ascii_letters + string.digits)
     
     # @core.log_args
@@ -1555,6 +1553,12 @@ class TaurenMDAnalysis(TaurenTraj):
     
     @core.log_args
     def _filter_existent_selectors(self, selectors_list):
+        
+        if not(isinstance(selectors_list, list)):
+            raise TypeError(
+                "*selectors_list* MUST be list type"
+                f"{type(selectors_list)} given"
+                )
         
         # https://www.mdanalysis.org/docs/documentation_pages/selections.html#simple-selections
         
