@@ -62,7 +62,7 @@ def test_7():
     a = TrajObservables()
     a.append("a string", "hello", param_1=1)
     
-    assert a == [{"data": "a string", "param_1": 1, "param_2": "hello"}]
+    assert a[0] == {"data": "a string", "param_1": 1, "param_2": "hello"}
 
 def test_8():
     
@@ -90,3 +90,23 @@ def test_9():
         "param_4": "bla",
         "param_5": "bla",
         }]
+
+def test_10():
+    
+    d = {"data": 1}
+    
+    a = TrajObservables()
+    a.append(d)
+    
+    assert isinstance(a[0], dict)
+
+
+def test_11():
+    
+    d = {"data": 1}
+    
+    a = TrajObservables()
+    a.append(**d)
+    
+    # assert isinstance(a[0]["data"], int)
+    assert a[0]["data"] == 1

@@ -1,3 +1,4 @@
+# tests TaurenTraj interface for MDAnalysis core
 # ATTENTION: tests other MATTERS because they operate over trajectory.
 import os
 import itertools as it
@@ -7,13 +8,15 @@ from tauren import tauren
 from tauren import load
 
 file_path = "tests"
+mdtype = "mda"
+trajtype = "mdanalysis"
 
 trajectory = os.path.join(file_path, "reference", "traj_test_PCNA.dcd")
 topology = os.path.join(file_path, "reference", "topology_test.pdb")
-noHOHtop = os.path.join(file_path, "reference", "mda_noHOH000.pdb")
-chainid1 = os.path.join(file_path, "reference", "mda_segid_A_000.pdb")
-aligned0 = os.path.join(file_path, "reference", "mda_aligned_000.pdb")
-aligned50 = os.path.join(file_path, "reference", "mda_aligned_050.pdb")
+noHOHtop = os.path.join(file_path, "reference", mdtype, "noHOH000.pdb")
+chainid1 = os.path.join(file_path, "reference", mdtype, "segid_A_000.pdb")
+aligned0 = os.path.join(file_path, "reference", mdtype, "aligned_000.pdb")
+aligned50 = os.path.join(file_path, "reference", mdtype, "aligned_050.pdb")
 
 def atom_predicate(line):
     
@@ -22,14 +25,7 @@ def atom_predicate(line):
     else:
         return True
 
-def test_static_gen_pdb_name_format_1():
-    s = tauren.TaurenMDAnalysis._gen_pdb_name_format(500, 'pdb')
-    assert s == "{:0>3}.pdb"
 
-
-def test_static_gen_pdb_name_format_2():
-    s = tauren.TaurenMDAnalysis._gen_pdb_name_format(5, 'pdb')
-    assert s == "{:0>1}.pdb"
 
 
 def test_static_gen_selector_1():
@@ -353,18 +349,26 @@ def test_rmsds_combined_1():
     
     key = traj.calc_rmsds_combined_chains()
     
-    assert isinstance(key.datatype, str)
-    assert isinstance(key.identifier, str)
-    assert isinstance(key.filenaming, str)    
-    
-    traj.export_data(key)
+    assert len(traj.observables) == 1
 
-def test_rmsds_combined_2():
+def test_export_data_1():
     
-    key = traj.calc_rmsds_separated_chains()
+    traj.export_data(0)
     
-    assert isinstance(key.datatype, str)
-    assert isinstance(key.identifier, str)
-    assert isinstance(key.filenaming, str)  
     
-    traj.export_data(key)
+    
+    # assert isinstance(key.datatype, str)
+    # assert isinstance(key.identifier, str)
+    # assert isinstance(key.filenaming, str)    
+    
+    # traj.export_data(key)
+
+# def test_rmsds_combined_2():
+    
+    # key = traj.calc_rmsds_separated_chains()
+    
+    # assert isinstance(key.datatype, str)
+    # assert isinstance(key.identifier, str)
+    # assert isinstance(key.filenaming, str)  
+    
+    # traj.export_data(key)

@@ -1,4 +1,7 @@
+# tests MDTraj dunders
 # ATTENTION: tests other MATTERS because they operate over trajectory.
+# tests TaurenTraj interface for MDAnalysis core
+
 import os
 import filecmp
 import itertools as it
