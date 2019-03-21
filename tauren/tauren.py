@@ -147,21 +147,11 @@ class TaurenTraj(ABC):
         """
         Tuple (start, end, step)
         """
-        start = tuple_[0]
-        end = tuple_[1]
-        step = tuple_[2]
-        
-        if step == 0:
-            raise ValueError("step can NOT be zero.")
-        
-        elif step > 0 and not(start < end) \
-                or step < 0 and not(start > end):
-            raise ValueError(
-                f"This tuple combination '{tuple_}'"
-                " will render an empty selection."
-                " Use start > end for step > 0 or"
-                " start < end for steps < 0."
-                )
+        self._check_correct_slice(
+            tuple_[0],
+            tuple_[1],
+            tuple_[2],
+            )
         
         log.info(f"slice_tuple: {tuple_}")
         
@@ -251,12 +241,8 @@ class TaurenTraj(ABC):
         *start* and *end* are ¡Python indexes!, where
         *start* starts from 0 and *end* is NOT included.
         """
-        
-        self._check_correct_slice(end)
-        
-        self._fslicer = slice(start, end, step)
-        
         self.slice_tuple = (start, end, step)
+        self._fslicer = slice(start, end, step)
         
         log.debug(f"<_fslicer> updated: {self._fslicer}")
         
@@ -265,7 +251,7 @@ class TaurenTraj(ABC):
     @core.log_args
     def _check_correct_slice(self, start, end, step):
         """
-        Checks if slicing end is less or equal than traj length.
+        Checks if slicing is valid and gives NOT an empty selection.
         """
         
         if not isinstance(start, int) \
@@ -274,36 +260,21 @@ class TaurenTraj(ABC):
             
             raise TypeError("arguments must be INTEGER type")
         
-        if step == 0:
-            raise ValueError("*step* can NOT be zero.")
+        slc = slice(start, end, step)
         
-        elif step > 0 and not(start < end) \
-                or step < 0 and not(start > end):
+        try:
+            fflst = self.full_frames_list[slc]
+        
+        except ValueError:
+            log.info("*step* can NOT be zero.")
+            raise
+        
+        if not fflst:
+            
             raise ValueError(
                 f"This tuple combination '{(start, end, step)}'"
                 " will render an empty selection."
-                " Use start > end for step > 0 or"
-                " start < end for steps < 0."
                 )
-        
-        _err = (
-            "* WARNING! *"
-            " Your slicing range for '{}'"
-            " goes beyond the trajectory length."
-            " The maximum length of your trajectory"
-            f" is {len(self.full_frames_list)} frames."
-            )
-        
-        if abs(end) > len(self.full_frames_list):
-            
-            log.warning(_err.format("end"))
-            raise ValueError(_err.format("end"))
-        
-        if abs(start) > len(self.full_frames_list):
-            
-            log.warning(_err.format("start"))
-            raise ValueError(_err.format("start"))
-        
         
         return
     
