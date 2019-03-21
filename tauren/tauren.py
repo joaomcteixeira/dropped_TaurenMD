@@ -72,8 +72,26 @@ class TaurenTraj(ABC):
         # pass
     
     @property
+    def original_traj(self):
+        """
+        The original trajectory without any modification.
+        """
+        return self._original_traj
+    
+    @original_traj.setter
+    def original_traj(self, traj):
+        self._original_traj = traj
+    
+    @property
     @abstractmethod
     def trajectory(self):
+        """
+        The trajectory sliced according to the current
+        :attr:`~atom_selection`.
+        
+        For :doctrajtype:`trajectory type <>` :mdtrajdoc:`MDTraj <>`
+        *trajectory* is sliced also according to :attr:`~slice_tuple`.
+        """
         pass
     
     @trajectory.setter
@@ -83,7 +101,7 @@ class TaurenTraj(ABC):
     
     @property
     def observables(self):
-        """A dictionary containing all data obtained from the system."""
+        """A list containing all data obtained from the system."""
         return self._observables
     
     @observables.setter
@@ -104,18 +122,23 @@ class TaurenTraj(ABC):
         """
         return self._full_frames_list
     
+    @full_frames_list.setter
+    def full_frames_list(self):
+        log.info("* NOTICE * Can't set full_frames_list manually")
+    
     @property
     def sliced_frames_list(self):
         """
-        The list of frames in the current frame slicing.
+        The list of frames in the current frame slicing,
+        according to :attr:`~slice_tuple`.
         """
         return self.full_frames_list[self._fslicer]
     
     @property
     def slice_tuple(self):
         """
-        A 3 element tuple identifing the current slicing
-        (start, end, step).
+        A 3 element tuple identifing the current frame slicing,
+        (start, end, step), where start is 0-indexed, end is excluded.
         """
         return self._slice_tuple
     
@@ -150,7 +173,7 @@ class TaurenTraj(ABC):
     def n_frames(self):
         """
         The number of frames in the trajectory considering the
-        current slicing as defined by the :attr:`slice_tuple`.
+        current slicing as defined by the :attr:`~slice_tuple`.
         """
         return len(self.full_frames_list[self._fslicer])
     
@@ -158,7 +181,8 @@ class TaurenTraj(ABC):
     @abstractmethod
     def totaltime(self):
         """
-        The total time in the current slicing.
+        The total time in the current slicing, according to
+        :attr:`~slice_tuple`
         """
         pass
     
@@ -166,7 +190,8 @@ class TaurenTraj(ABC):
     @abstractmethod
     def timestep(self):
         """
-        The time step in the current slicing.
+        The time step in the current slicing, according to
+        :attr:`~slice_tuple`
         """
         pass
     
@@ -199,7 +224,8 @@ class TaurenTraj(ABC):
     @abstractmethod
     def n_residues(self):
         """
-        The number of residues in the current slicing.
+        The number of residues in the current slicing,
+        according to :attr:`~atom_selection`.
         """
         pass
     
@@ -207,7 +233,8 @@ class TaurenTraj(ABC):
     @abstractmethod
     def n_atoms(self):
         """
-        The number of atoms in the current slicing.
+        The number of atoms in the current slicing,
+        according to :attr:`~atom_selection`.
         """
         pass
     
@@ -221,8 +248,8 @@ class TaurenTraj(ABC):
         """
         Updates the current frame slicing object.
         
-        start and end are ¡Python indexes!
-        start from 0 and end is NOT included.
+        *start* and *end* are ¡Python indexes!, where
+        *start* starts from 0 and *end* is NOT included.
         """
         
         self._check_correct_slice(end)
@@ -236,26 +263,47 @@ class TaurenTraj(ABC):
         return
     
     @core.log_args
-    def _check_correct_slice(self, end):
+    def _check_correct_slice(self, start, end, step):
         """
         Checks if slicing end is less or equal than traj length.
         """
         
-        if not isinstance(end, int):
-            raise TypeError(f"<end> must be int, {type(end)} given.")
+        if not isinstance(start, int) \
+                and not isinstance(end, int) \
+                and not isinstance(step, int):
+            
+            raise TypeError("arguments must be INTEGER type")
+        
+        if step == 0:
+            raise ValueError("*step* can NOT be zero.")
+        
+        elif step > 0 and not(start < end) \
+                or step < 0 and not(start > end):
+            raise ValueError(
+                f"This tuple combination '{(start, end, step)}'"
+                " will render an empty selection."
+                " Use start > end for step > 0 or"
+                " start < end for steps < 0."
+                )
         
         _err = (
             "* WARNING! *"
-            "\n"
-            f"Your slicing range '{end}' "
-            "goes beyond the trajectory length. "
-            "The maximum length of your trajectory "
-            f"is {len(self.full_frames_list)} frames."
+            " Your slicing range for '{}'"
+            " goes beyond the trajectory length."
+            " The maximum length of your trajectory"
+            f" is {len(self.full_frames_list)} frames."
             )
         
-        if end > len(self.full_frames_list):
-            log.warning(_err)
-            raise ValueError(_err)
+        if abs(end) > len(self.full_frames_list):
+            
+            log.warning(_err.format("end"))
+            raise ValueError(_err.format("end"))
+        
+        if abs(start) > len(self.full_frames_list):
+            
+            log.warning(_err.format("start"))
+            raise ValueError(_err.format("start"))
+        
         
         return
     
@@ -304,11 +352,8 @@ class TaurenTraj(ABC):
     
     def undo_rmv_solvent(self):
         """
-        Undo a previous action of remove solvent by activating
+        Undo a previous action of solvent removal by activating
         solvent again.
-        
-        This method is only available when using
-        :mdanalysis:`MDAnalysis <>`.
         """
         self._undo_rmv_solvent()
     
@@ -346,12 +391,15 @@ class TaurenTraj(ABC):
             The name of the file of the aligned trajectory.
             Trajectory type is deduced from file extension.
             User only if *inplace* is ``True``, ignored otherwise.
+        
+        Raises
+        ------
+        TypeError
+            If *file_name* is not :obj:`str` type.
+            If *inplace* is not :obj:`bool` type.
         """
         
         log.info("* Aligning trajectory... ")
-        
-        if not(isinstance(weights, str)):
-            raise TypeError("weights is NOT str type.")
         
         if not(isinstance(file_name, str)):
             raise TypeError("file_name is NOT str type.")
@@ -376,6 +424,12 @@ class TaurenTraj(ABC):
     def image_molecules(self, **kwargs):
         """
         Images molecules.
+        
+        Currently only available for :mdtrajdoc:`MDTraj <>`
+        subroutines.
+        
+        Images molecules according to :mdjdocim:`MDTraj.image_molecules <>`.
+        Receives the same arguments.
         """
         
         return self._image_molecules(**kwargs)
@@ -454,7 +508,7 @@ class TaurenTraj(ABC):
         log.info("    done.")
         return
     
-    @core.log_args
+    # @core.log_args
     def set_atom_selection(self, selector, **kwargs):
         """
         Sets the atom selection.
@@ -464,10 +518,14 @@ class TaurenTraj(ABC):
         Parameters
         ----------
         selector : str
-            The selection string. This may deppend on the type of
-            MD analysis library chosen for the calculation.
+            The selection string.
+            Should be of a valid format according to the
+            MD analysis library used in :doctrajtype:`trajectory_type <>`.
             Please refer to the MD analysis library
-            specific documentation.
+            specific documentation:
+            
+            - :mdaselections:`MDAnalysis <>`
+            - :mdtselections:`MDTraj <>`
         
         Raises
         ------
@@ -569,40 +627,41 @@ class TaurenTraj(ABC):
     @core.log_args
     def _get_frame_list_from_string(self, frames):
         """
-        Generates a list of frames from a string
-        """
+        Generates a list of frames from a string.
         
-        # frames_to_extract is a list of the frames number
-        # starting at 1.
+        Frames list are indexed at 1.
+        """
         if frames == "all":
-            frames_list = self.sliced_frames_list
+            return self.sliced_frames_list
+        
+        elif isinstance(frames, int):
+            flist = [frames]
         
         elif isinstance(frames, str):
             
             if frames.isdigit():
-                frames_list = [int(frames)]
+                flist = [int(frames)]
             
-            elif "," in frames and frames.replace(",", "").isdigit():
-                frames_list = list(map(lambda x: int(x), frames.split(",")))
+            elif frames.replace(",", "").isdigit():
+                flist = [int(f) for f in frames.split(",") if f]
                 
             elif ":" in frames and frames.replace(":", "").isdigit():
-                frames_list = \
-                    self.full_frames_list[
+                flist = self.full_frames_list[
                         self._gen_frame_slicer_from_string(frames)
                         ]
             
             else:
-                raise ValueError(
-                    "<frames> not of valid format see: "
-                    f"{TaurenMDAnalysis.frames2file.__doc__}"
-                    )
+                raise ValueError("*frames* string not of valid format")
         
         else:
             raise TypeError(
-                f"<frames> should be string type: '{type(frames)}' given."
+                f"*frames* should be STRING type: '{type(frames)}' given."
                 )
         
-        return frames_list
+        if not flist[0] > 0:
+            raise ValueError("Frame index start at 1.")
+        
+        return flist
     
     @core.log_args
     def _gen_frame_slicer_from_string(self, s):
@@ -619,7 +678,7 @@ class TaurenTraj(ABC):
             >>> _gen_frame_slicer_from_string("1")
             slice(0, 1, 1)
         
-        Does not check for s integrity.
+        Does not check for *s* integrity.
         """
         
         if s.isdigit():
@@ -661,6 +720,20 @@ class TaurenTraj(ABC):
         
         else:
             raise ValueError("slice string not valid")
+        
+        if start < 1:
+            
+            raise ValueError("*start* can't be lower than 1"
+             \
+                or (step > 0 and not(start < end) \
+                    or step < 0 and not(start > end)):
+            
+            raise ValueError(
+                f"This tuple combination '{(start, end, step)}'"
+                " will render an empty selection."
+                " Use start > end for step > 0 or"
+                " start < end for steps < 0."
+                )
         
         slicer = slice(start, end, step)
         
@@ -1289,14 +1362,6 @@ class TaurenMDAnalysis(TaurenTraj):
     def _set_full_frames_list(self):
         super()._set_full_frames_list(self.original_traj.n_frames)
     
-    @property
-    def original_traj(self):
-        return self._original_traj
-    
-    @original_traj.setter
-    def original_traj(self, traj):
-        self._original_traj = traj
-    
     @TaurenTraj.trajectory.getter
     def trajectory(self):
         return self.universe.select_atoms(self.atom_selection)
@@ -1609,14 +1674,6 @@ class TaurenMDTraj(TaurenTraj):
     def _set_full_frames_list(self):
         super()._set_full_frames_list(self.original_traj.n_frames)
     
-    @property
-    def original_traj(self):
-        return self._trajectory
-    
-    @original_traj.setter
-    def original_traj(self, traj):
-        self._trajectory = traj
-    
     @TaurenTraj.trajectory.getter
     def trajectory(self):
         
@@ -1688,7 +1745,7 @@ class TaurenMDTraj(TaurenTraj):
             sorted_bonds=None,
             make_whole=True,
             inplace=True,
-            **kwargs,
+            **kwargs
             ):
         """
         Performs MDTraj.Trajectory.image_molecules, accepts same arguments.
