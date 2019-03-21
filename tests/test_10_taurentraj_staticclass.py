@@ -109,3 +109,105 @@ def test_gen_chain_list_11():
     chainlist = traj._gen_chain_list("A,,B,C,")
     
     assert chainlist == ["A", "B", "C"]
+
+
+def test_frames_to_list_1():
+    assert traj._get_frame_list("7") == [7]
+
+def test_frames_to_list_2():
+    assert traj._get_frame_list(7) == [7]
+
+
+def test_frames_to_list_3():
+    assert traj._get_frame_list("1,2") == [1,2]
+
+# tests both frames_to_list and _gen_frame_slices_from_string
+def test_frames_to_list_4():
+    assert traj._get_frame_list("1:8") == [1,2,3,4,5,6,7,8]
+
+
+def test_frames_to_list_5():
+    assert traj._get_frame_list("95:") == [95,96,97,98,99, 100]
+
+
+def test_frames_to_list_6():
+    assert traj._get_frame_list(":3") == [1,2,3]
+
+
+def test_frames_to_list_6():
+    assert traj._get_frame_list("1:10:2") == [1,3,5,7,9]
+
+
+def test_frames_to_list_7():
+    with pytest.raises(ValueError):
+        traj._get_frame_list("1:10~")
+
+
+def test_frames_to_list_8():
+    with pytest.raises(ValueError):
+        traj._get_frame_list("1,B")
+
+
+def test_frames_to_list_9():
+    with pytest.raises(TypeError):
+        traj._get_frame_list(["1,B"])
+
+
+def test_frames_to_list_10():
+    with pytest.raises(TypeError):
+        traj._get_frame_list(1.0)
+
+
+def test_frames_to_list_11():
+    with pytest.raises(TypeError):
+        traj._get_frame_list({"foo": "bar"})
+
+
+def test_check_correct_slice_1():
+    
+    with pytest.raises(TypeError):
+        traj._check_correct_slice(0, 10, "1")
+
+
+def test_check_correct_slice_2():
+    
+    with pytest.raises(TypeError):
+        traj._check_correct_slice(0, "10", 1)
+
+
+def test_check_correct_slice_3():
+    
+    with pytest.raises(TypeError):
+        traj._check_correct_slice("0", 10, 1)
+
+
+def test_check_correct_slice_4():
+    
+    with pytest.raises(ValueError):
+        traj._check_correct_slice(0, 10, 0)
+
+
+def test_check_correct_slice_5():
+    
+    with pytest.raises(ValueError):
+        traj._check_correct_slice(10, 0, 1)
+
+
+def test_check_correct_slice_6():
+    
+    with pytest.raises(ValueError):
+        traj._check_correct_slice(0, 10, -1)
+
+
+def test_gen_selector_1():
+    
+    result = traj._gen_selector(["A", "B"])
+    
+    assert result == "segid A or segid B"
+
+
+def test_gen_selector_2():
+    
+    result = traj._gen_selector(["A", "B"], selection="resid", boolean="and")
+    
+    assert result == "resid A and resid B"
