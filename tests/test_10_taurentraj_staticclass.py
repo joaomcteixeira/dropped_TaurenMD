@@ -1,3 +1,5 @@
+import pytest
+
 from tauren import tauren, load
 
 
@@ -15,7 +17,7 @@ def test_static_check_chains_1():
     
     chains = ["A", "B", "C"]
     
-    tauren.TaurenTraj._check_chains_argument(chains)
+    result = tauren.TaurenTraj._check_chains_argument(chains)
     assert result is None
 
 def test_static_check_chains_2():
@@ -51,25 +53,25 @@ def test_static_check_chains_6():
     chains = 1
     
     with pytest.raises(TypeError):
-        tauren.TrajObservables._check_chains_argument(chains)
+        tauren.TaurenTraj._check_chains_argument(chains)
 
 def test_static_check_chains_7():
     
     chains = {"foo": "bar"}
     
     with pytest.raises(TypeError):
-        tauren.TrajObservables._check_chains_argument(chains)
+        tauren.TaurenTraj._check_chains_argument(chains)
 
 def test_static_check_chains_8():
     
     chains = [{"foo": "bar"}, "A"]
     
     with pytest.raises(ValueError):
-        tauren.TrajObservables._check_chains_argument(chains)
+        tauren.TaurenTraj._check_chains_argument(chains)
 
 def test_static_check_chains_9():
     
     chains = [[1], "A"]
     
     with pytest.raises(ValueError):
-        tauren.TrajObservables._check_chains_argument(chains)
+        tauren.TaurenTraj._check_chains_argument(chains)

@@ -861,7 +861,7 @@ class TaurenTraj(ABC):
                     f"Wrong input found: {chains}"
                     )
                 log.debug(_err)
-                raise TypeError(_err)
+                raise ValueError(_err)
             
         else:
             _err = (
