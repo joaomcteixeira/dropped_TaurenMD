@@ -208,6 +208,13 @@ class TaurenTraj(ABC):
         selector : str
             The string the defines the selector.
         """
+        
+        if not isinstance(selector, str):
+            raise TypeError(
+                "*selector* must be STRING type."
+                f" '{type(selector)}' given."
+                )
+        
         self._atom_selection = selector
     
     @property
@@ -456,7 +463,7 @@ class TaurenTraj(ABC):
         log.info("    done.")
         return
     
-    # @core.log_args
+    @core.log_args
     def set_atom_selection(self, selector, **kwargs):
         """
         Sets the atom selection.
@@ -467,6 +474,7 @@ class TaurenTraj(ABC):
         ----------
         selector : str
             The selection string.
+            If None type provided assumes ``"all"``.
             Should be of a valid format according to the
             MD analysis library used in :doctrajtype:`trajectory_type <>`.
             Please refer to the MD analysis library
@@ -483,17 +491,11 @@ class TaurenTraj(ABC):
         log.info("* Setting atom selection:")
         log.debug(f"<selection>: {selector}")
         
-        if isinstance(selector, str):
-            self.atom_selection = selector
-        
-        elif selector is None:
+        if selector is None:
             self.atom_selection = "all"
         
         else:
-            raise TypeError(
-                "<selection> parameter must be STRING or None types."
-                f"'{type(selector)}' given."
-                )
+            self.atom_selection = selector
         
         log.info(f"    atom selection set to {self.atom_selection}")
         
@@ -550,7 +552,7 @@ class TaurenTraj(ABC):
         log.debug(f"<prefix>: {prefix}")
         log.debug(f"<ext>: {ext}")
         
-        frames_to_extract = self._get_frame_list_from_string(frames)
+        frames_to_extract = self._get_frame_list(frames)
         
         pdb_name_fmt = \
             prefix \
@@ -573,30 +575,34 @@ class TaurenTraj(ABC):
         return
     
     @core.log_args
-    def _get_frame_list_from_string(self, frames):
+    def _get_frame_list(self, frames):
         """
-        Generates a list of frames from a string.
+        Extract the frame number sublist from *frames*.
         
-        Frames list are indexed at 1.
+        *frames* can be INT or STR.
+        
+        Frames list self.full_frames_list is indexed at 1.
         """
         if frames == "all":
             return self.sliced_frames_list
         
         elif isinstance(frames, int):
-            flist = [frames]
+            return self.full_frames_list[frames - 1]
         
         elif isinstance(frames, str):
             
             if frames.isdigit():
-                flist = [int(frames)]
+                return self.full_frames_list[int(frames) - 1]
             
             elif frames.replace(",", "").isdigit():
-                flist = [int(f) for f in frames.split(",") if f]
+                return [self.full_frames_list[int(f) - 1]
+                    for f in frames.split(",") if f]
                 
             elif ":" in frames and frames.replace(":", "").isdigit():
-                flist = self.full_frames_list[
-                        self._gen_frame_slicer_from_string(frames)
-                        ]
+                
+                slicer = self._gen_frame_slices_from_string(frames)
+                self._check_correct_slice(*slicer)
+                return self.full_frames_list[slice(*slicer)]
             
             else:
                 raise ValueError("*frames* string not of valid format")
@@ -605,28 +611,24 @@ class TaurenTraj(ABC):
             raise TypeError(
                 f"*frames* should be STRING type: '{type(frames)}' given."
                 )
-        
-        if not flist[0] > 0:
-            raise ValueError("Frame index start at 1.")
-        
-        return flist
     
     @core.log_args
-    def _gen_frame_slicer_from_string(self, s):
+    def _gen_frame_slices_from_string(self, s):
         """
-        Generates a slicer object from string.
+        Generates slices indexes from string.
         
-        The generated slicer is unrelated with the Traj frame slicer.
-        
-        Considers frames starting from 1 and END inclusive, though slicer
-        is zero indexed.
-        
-        Example:
+        Examples:
             
             >>> _gen_frame_slicer_from_string("1")
-            slice(0, 1, 1)
+            (0, 1, 1)
+            
+            >>> _gen_frame_slicer_from_string("1:100")
+            (0, 100, 1)
         
-        Does not check for *s* integrity.
+        Returns
+        -------
+        tuple
+            (start, end, step) indexes.
         """
         
         if s.isdigit():
@@ -669,24 +671,7 @@ class TaurenTraj(ABC):
         else:
             raise ValueError("slice string not valid")
         
-        if start < 1:
-            
-            raise ValueError("*start* can't be lower than 1"
-             \
-                or (step > 0 and not(start < end) \
-                    or step < 0 and not(start > end)):
-            
-            raise ValueError(
-                f"This tuple combination '{(start, end, step)}'"
-                " will render an empty selection."
-                " Use start > end for step > 0 or"
-                " start < end for steps < 0."
-                )
-        
-        slicer = slice(start, end, step)
-        
-        assert isinstance(slicer, slice), "NOT A SLICE OBJECT"
-        return slicer
+        return start, end, step
     
     @staticmethod
     @core.log_args
@@ -1394,7 +1379,8 @@ class TaurenMDAnalysis(TaurenTraj):
         """
         
         # frames are treated separatelly to allow exception capture and log
-        for frame in frames_to_extract:
+        # MDAnalysis frames are 0-indexed
+        for frame in [f - 1 for f in frames_to_extract]:
             
             try:
                 self.universe.select_atoms(self.atom_selection).write(
@@ -1748,7 +1734,8 @@ class TaurenMDTraj(TaurenTraj):
         pdb_name_fmt, "prefix_{FORMATTING CONDITION}.extension"
         """
         
-        for frame in frames_to_extract:
+        # MDTraj is 0-indexed
+        for frame in [f - 1 for f in frames_to_extract]:
         
             try:
                 slice_ = self.trajectory.slice(frame, copy=True)
