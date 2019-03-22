@@ -193,7 +193,7 @@ class TaurenTraj(ABC):
         If not defined assumes "all".
         """
         try:
-            return self._atom_selection
+            return self._atom_selection + "222"
         
         except AttributeError:
             return "all"
@@ -806,8 +806,6 @@ class TaurenTraj(ABC):
         log.info("* Calculating RMSDs for combined chains...")
         
         storage_key = storage_key or "rmsds_combined_chains"
-        
-        # self._check_chains_argument(chains)
                 
         chain_list = self._gen_chain_list(chains)  # abstractmethod
         
@@ -1284,7 +1282,7 @@ class TaurenMDAnalysis(TaurenTraj):
         except AttributeError:
             atmsel = "all"
         
-        return f"{self._rmv_solvent_selector} and {atmsel}"
+        return f"({self._rmv_solvent_selector}) and ({atmsel})"
     
     @TaurenTraj.n_residues.getter
     def n_residues(self):
@@ -1296,7 +1294,7 @@ class TaurenMDAnalysis(TaurenTraj):
     
     @core.log_args
     def _remove_solvent(self, **kwargs):
-        self._rmv_solvent_selector = "(protein or nucleic)"
+        self._rmv_solvent_selector = "protein or nucleic"
         log.info("    solvent removed")
         return
     
@@ -1514,7 +1512,10 @@ class TaurenMDAnalysis(TaurenTraj):
         selectors = []
         for selector in selectors_list:
         
-            atoms = self.topology.select_atoms(selector)
+            atoms = self.topology.select_atoms(
+                f"{self.atom_selection} and {selector}"
+                )
+            
             if len(atoms) == 0:
                 log.debug(f"chain {selector} does not exist")
                 continue

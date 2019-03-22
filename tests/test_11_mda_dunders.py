@@ -34,14 +34,43 @@ def test_rmv_solvent_1():
     
     traj.remove_solvent()
     
-    assert traj.atom_selection == "(protein or nucleic) and all"
+    assert traj.atom_selection == "(protein or nucleic) and (all)"
 
 
 def test_undo_rmv_solvent_1():
     
     traj.undo_rmv_solvent()
     
-    assert traj.atom_selection == "all and all"
+    assert traj.atom_selection == "(all) and (all)"
+
+
+def test_set_atom_selection_1():
+    
+    traj.set_atom_selection("resid 1")
+    
+    assert traj.atom_selection == "(all) and (resid 1)"
+
+
+def test_set_atom_selection_2():
+    
+    traj.set_atom_selection("resid 1 or resid 50")
+    
+    assert traj.atom_selection == "(all) and (resid 1 or resid 50)"
+
+
+def test_rmvsol_atom_1():
+    
+    traj.remove_solvent()
+    
+    assert traj.atom_selection == "(protein or nucleic) and (resid 1 or resid 50)"
+
+
+def test_revert_atom_selection():
+    
+    traj.set_atom_selection(None)
+    
+    # assert traj._rmv_solvent_selector == "protein or nucleic"
+    assert traj.atom_selection == "(protein or nucleic) and (all)"
 
 
 def test_image_molecules_1():
@@ -53,6 +82,23 @@ def test_filter_existent_selectors_1():
     
     sel = ["segid A", "segid B", "segid Z"]
     
+    result = traj._filter_existent_selectors(sel)
+    
+    assert result == ["segid A", "segid B"]
+
+def test_filter_existent_selectors_3():
+    
+    sel = ["segid A", "segid B", "segid Z"]
+    
+    traj.set_atom_selection("segid A")
+    result = traj._filter_existent_selectors(sel)
+    
+    assert result == ["segid A"]
+
+def test_filter_existent_selectors_4():
+    
+    sel = ["segid A", "segid B", "segid Z"]
+    traj.set_atom_selection("all")
     result = traj._filter_existent_selectors(sel)
     
     assert result == ["segid A", "segid B"]
