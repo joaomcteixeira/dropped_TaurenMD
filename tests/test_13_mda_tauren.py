@@ -111,7 +111,7 @@ def test_rmv_solvent_selector_default():
 
 
 def test_default_atom_selection():
-    assert traj.atom_selection == "all and all"
+    assert traj.atom_selection == "(all) and (all)"
 
 
 def test_frame2file_with_solvent_1():
@@ -144,11 +144,11 @@ def test_frame2file_with_solvent_50():
 
 def test_remove_solvent_selector():
     traj.remove_solvent()
-    assert traj._rmv_solvent_selector == "(protein or nucleic)"
+    assert traj._rmv_solvent_selector == "protein or nucleic"
 
 
 def test_remove_solvent_atom_selection():
-    assert traj.atom_selection == "(protein or nucleic) and all"
+    assert traj.atom_selection == "(protein or nucleic) and (all)"
 
 
 def test_frame2file_noHOH_1():
@@ -224,7 +224,7 @@ def test_set_atom_selection_reset():
     
     traj.set_atom_selection(selector=None)
     
-    assert traj.atom_selection == "(protein or nucleic) and all"
+    assert traj.atom_selection == "(protein or nucleic) and (all)"
 
 
 def test_frame2file_aligned_1():
@@ -273,7 +273,8 @@ def test_frame2file_aligned_50():
 
 def test_undo_rmv_solvent_1():
     traj.undo_rmv_solvent()
-    assert traj.atom_selection == "all and all"
+    assert traj.atom_selection == "(all) and (all)"
+
 
 def test_rmsds_combined_1():
     
@@ -281,12 +282,38 @@ def test_rmsds_combined_1():
     
     assert len(traj.observables) == 1
 
+
 def test_export_data_1():
     
     traj.export_data(0)
+
+
+def test_rmsds_combined_2():
     
+    traj.remove_solvent()
     
+    key = traj.calc_rmsds_combined_chains()
     
+    assert len(traj.observables) == 2
+
+
+def test_export_data_2():
+    
+    traj.export_data(1)
+
+
+def test_rmsds_combined_3():
+    
+    key = traj.calc_rmsds_combined_chains(chains="A")
+    
+    assert len(traj.observables) == 3
+
+
+def test_export_data_3():
+    
+    traj.export_data(2)
+    
+
     # assert isinstance(key.datatype, str)
     # assert isinstance(key.identifier, str)
     # assert isinstance(key.filenaming, str)    
