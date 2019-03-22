@@ -552,6 +552,11 @@ class TaurenTraj(ABC):
         log.debug(f"<prefix>: {prefix}")
         log.debug(f"<ext>: {ext}")
         
+        if isinstance(frames, str) and frames.startswith("0") \
+                or isinstance(frames, int) and frames == 0 \
+                or isinstance(frames, list) and 0 in frames:
+            raise ValueError("Trajectory frames indexes start at 1.")
+        
         frames_to_extract = self._get_frame_list(frames)
         
         pdb_name_fmt = \
@@ -587,12 +592,12 @@ class TaurenTraj(ABC):
             return self.sliced_frames_list
         
         elif isinstance(frames, int):
-            return self.full_frames_list[frames - 1]
+            return [self.full_frames_list[frames - 1]]
         
         elif isinstance(frames, str):
             
             if frames.isdigit():
-                return self.full_frames_list[int(frames) - 1]
+                return [self.full_frames_list[int(frames) - 1]]
             
             elif frames.replace(",", "").isdigit():
                 # _ for flake8 :-)
@@ -1058,6 +1063,12 @@ class TaurenTraj(ABC):
         """
         
         log.debug(f"identifier: {identifiers}")
+        
+        if not isinstance(identifiers, list):
+            raise TypeError(
+                "*identifiers* must be LIST."
+                f" '{type(identifiers)}' given."
+                )
         
         id_lst = list(map(lambda x: f"{selection} {x}", identifiers))
         

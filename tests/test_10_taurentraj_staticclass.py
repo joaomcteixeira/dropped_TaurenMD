@@ -162,6 +162,33 @@ def test_frames_to_list_11():
     with pytest.raises(TypeError):
         traj._get_frame_list({"foo": "bar"})
 
+def test_frames_to_slice_7():
+    with pytest.raises(ValueError):
+        traj._gen_frame_slices_from_string(":::")
+
+def test_frames_to_slice_8():
+    with pytest.raises(ValueError):
+        traj._gen_frame_slices_from_string("5:::")
+
+
+def test_frames_to_slice_9():
+    with pytest.raises(ValueError):
+        traj._gen_frame_slices_from_string(":::7")
+
+
+def test_frames_to_slice_10():
+    with pytest.raises(ValueError):
+        traj._gen_frame_slices_from_string("::4:7")
+
+def test_frames_to_slice_11():
+    with pytest.raises(ValueError):
+        traj._gen_frame_slices_from_string(":3:4:7")
+
+
+def test_frames_to_slice_12():
+    with pytest.raises(ValueError):
+        traj._gen_frame_slices_from_string("as10")
+
 
 def test_check_correct_slice_1():
     
@@ -211,3 +238,47 @@ def test_gen_selector_2():
     result = traj._gen_selector(["A", "B"], selection="resid", boolean="and")
     
     assert result == "resid A and resid B"
+
+def test_gen_selector_3():
+    
+    s = traj._gen_selector(
+        identifiers=[1,2,3,4],
+        boolean="and",
+        selection="resid",
+        )
+    
+    assert s == "resid 1 and resid 2 and resid 3 and resid 4"
+
+def test_gen_selector_4():
+    
+    with pytest.raises(TypeError):
+        traj._gen_selector("a")
+
+def test_gen_selector_5():
+    
+    with pytest.raises(TypeError):
+        traj._gen_selector(1)
+
+
+def test_frame2file_valueerror_1():
+    
+    with pytest.raises(ValueError):
+        traj.frames2file("0")
+
+
+def test_frame2file_valueerror_2():
+    
+    with pytest.raises(ValueError):
+        traj.frames2file(0)
+
+
+def test_frame2file_valueerror_3():
+    
+    with pytest.raises(ValueError):
+        traj.frames2file([0])
+
+
+def test_frame2file_valueerror_4():
+    
+    with pytest.raises(ValueError):
+        traj.frames2file([2, 1, 0])
