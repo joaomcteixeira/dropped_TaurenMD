@@ -8,15 +8,25 @@ from tauren import tauren
 from tauren import load
 
 file_path = "tests"
+rf = "reference"
 mdtype = "mda"
 trajtype = "mdanalysis"
 
-trajectory = os.path.join(file_path, "reference", "traj_test_PCNA.dcd")
-topology = os.path.join(file_path, "reference", "topology_test.pdb")
-noHOHtop = os.path.join(file_path, "reference", mdtype, "noHOH000.pdb")
-chainid1 = os.path.join(file_path, "reference", mdtype, "segid_A_000.pdb")
-aligned0 = os.path.join(file_path, "reference", mdtype, "aligned_000.pdb")
-aligned50 = os.path.join(file_path, "reference", mdtype, "aligned_050.pdb")
+trajectory = os.path.join(file_path, rf, "traj_test_PCNA.dcd")
+topology = os.path.join(file_path, rf, "topology_test.pdb")
+
+solvent0 = os.path.join(file_path, rf, "solvent_all_frame0.pdb")
+solvent49 = os.path.join(file_path, rf, "solvent_all_frame49.pdb")
+
+noHOH0 = os.path.join(file_path, rf, "noHOH_all_frame0.pdb")
+noHOH49 = os.path.join(file_path, rf, "noHOH_all_frame49.pdb")
+
+noHOH_chainA0 = os.path.join(file_path, rf, "noHOH_chainA_frame0.pdb")
+noHOH_chainA49 = os.path.join(file_path, rf, "noHOH_chainA_frame49.pdb")
+
+noHOH_aligned0 = os.path.join(file_path, rf, "noHOH_all_aligned_frame0.pdb")
+noHOH_aligned49 = os.path.join(file_path, rf, "noHOH_all_aligned_frame49.pdb")
+
 
 def atom_predicate(line):
     
@@ -26,39 +36,11 @@ def atom_predicate(line):
         return True
 
 
-
-
-def test_static_gen_selector_1():
-    
-    s = tauren.TaurenMDAnalysis._gen_selector(
-        identifiers=[1,2,3,4],
-        boolean="and",
-        selection="resid",
-        )
-    
-    assert s == "resid 1 and resid 2 and resid 3 and resid 4"
-
-def test_static_gen_selector_2():
-    
-    with pytest.raises(TypeError):
-        s = tauren.TaurenMDAnalysis._gen_selector(
-            identifiers=5,
-            boolean="and",
-            selection="resid",
-            )
-
-
-def test_load_traj():
-
-    traj = load.load_traj(
+traj = load.load_traj(
         trajectory,
         topology,
         traj_type="mdanalysis",
         )
-
-    return traj
-
-traj = test_load_traj()
 
 
 def test_report():
@@ -80,7 +62,7 @@ def test_report():
     return
 
 
-def test_frameslice_2():
+def test_frame_slice_1():
     
     traj.frame_slice(
         start=1,
@@ -89,10 +71,9 @@ def test_frameslice_2():
         )
     
     assert traj.n_frames == 100
-    return
 
 
-def test_frameslice_3():
+def test_frame_slice_2():
     
     traj.frame_slice(
         start=50,
@@ -101,10 +82,9 @@ def test_frameslice_3():
         )
     
     assert traj.n_frames == 51
-    return
 
 
-def test_frameslice_1():
+def test_frame_slice_3():
     
     traj.frame_slice(
         start=1,
@@ -113,87 +93,6 @@ def test_frameslice_1():
         )
     
     assert traj.n_frames == 10
-    return
-    
-    
-def test_frames_to_slice_1():
-    assert traj._gen_frame_slicer_from_string("1") == slice(0, 1, 1)
-
-
-def test_frames_to_slice_2():
-    assert traj._gen_frame_slicer_from_string("1:") == slice(0, 100, 1)
-
-
-def test_frames_to_slice_3():
-    assert traj._gen_frame_slicer_from_string(":50") == slice(0, 50, 1)
-
-
-def test_frames_to_slice_4():
-    assert traj._gen_frame_slicer_from_string("1:10") == slice(0, 10, 1)
-
-
-def test_frames_to_slice_5():
-    assert traj._gen_frame_slicer_from_string("1:50:2") == slice(0, 50, 2)
-
-
-def test_frames_to_slice_6():
-    assert traj._gen_frame_slicer_from_string("::2") == slice(0, 100, 2)
-
-
-def test_frames_to_slice_7():
-    with pytest.raises(ValueError):
-        traj._gen_frame_slicer_from_string(":::")
-
-def test_frames_to_slice_8():
-    with pytest.raises(ValueError):
-        traj._gen_frame_slicer_from_string("5:::")
-
-
-def test_frames_to_slice_9():
-    with pytest.raises(ValueError):
-        traj._gen_frame_slicer_from_string(":::7")
-
-
-def test_frames_to_slice_10():
-    with pytest.raises(ValueError):
-        traj._gen_frame_slicer_from_string("::4:7")
-
-def test_frames_to_slice_11():
-    with pytest.raises(ValueError):
-        traj._gen_frame_slicer_from_string(":3:4:7")
-
-
-def test_frames_to_slice_12():
-    with pytest.raises(ValueError):
-        traj._gen_frame_slicer_from_string("as10")
-
-
-def test_frames_to_list_1():
-    assert traj._get_frame_list_from_string("all") == [1,2,3,4,5,6,7,8,9,10]
-
-
-def test_frames_to_list_2():
-    assert traj._get_frame_list_from_string("7") == [7]
-
-
-def test_frames_to_list_3():
-    assert traj._get_frame_list_from_string("1,2") == [1,2]
-
-
-def test_frames_to_list_4():
-    assert traj._get_frame_list_from_string("1:8") == [1,2,3,4,5,6,7,8]
-
-
-def test_frames_to_list_5():
-    assert traj._get_frame_list_from_string("95:") == [95,96,97,98,99, 100]
-
-
-def test_frames_to_list_6():
-    assert traj._get_frame_list_from_string(":3") == [1,2,3]
-
-
-def test_frames_to_list_6():
-    assert traj._get_frame_list_from_string("1:10:2") == [1,3,5,7,9]
 
 
 def test_frameslice_4():
@@ -205,7 +104,6 @@ def test_frameslice_4():
         )
     
     assert traj.n_frames == 100
-    return
 
 
 def test_rmv_solvent_selector_default():
@@ -216,22 +114,35 @@ def test_default_atom_selection():
     assert traj.atom_selection == "all and all"
 
 
-def test_frame_with_solvent():
+def test_frame2file_with_solvent_1():
     
-    traj.frames2file(prefix="mda_with_solvent", frames="0")
+    traj.frames2file(prefix="with_solvent", frames="1")
     
-    with open(topology, 'r') as fh:
+    with open(solvent0, 'r') as fh:
         f1 = it.filterfalse(atom_predicate, fh.readlines())
     
-    with open("mda_with_solvent000.pdb", 'r') as fh:
+    with open("with_solvent000.pdb", 'r') as fh:
         f2 = it.filterfalse(atom_predicate, fh.readlines())
     
     assert all(x == y for x, y in zip(f1, f2))
-    os.remove("mda_with_solvent000.pdb")
+    os.remove("with_solvent000.pdb")
+
+
+def test_frame2file_with_solvent_50():
+    
+    traj.frames2file(prefix="with_solvent", frames="50")
+    
+    with open(solvent49, 'r') as fh:
+        f1 = it.filterfalse(atom_predicate, fh.readlines())
+    
+    with open("with_solvent049.pdb", 'r') as fh:
+        f2 = it.filterfalse(atom_predicate, fh.readlines())
+    
+    assert all(x == y for x, y in zip(f1, f2))
+    os.remove("with_solvent049.pdb")
 
 
 def test_remove_solvent_selector():
-    
     traj.remove_solvent()
     assert traj._rmv_solvent_selector == "(protein or nucleic)"
 
@@ -240,11 +151,11 @@ def test_remove_solvent_atom_selection():
     assert traj.atom_selection == "(protein or nucleic) and all"
 
 
-def test_remove_solvent():
+def test_frame2file_noHOH_1():
     
-    traj.frames2file(prefix="_", frames="0")
+    traj.frames2file(prefix="_", frames="1")
     
-    with open(noHOHtop, 'r') as fh:
+    with open(noHOH0, 'r') as fh:
         f1 = it.filterfalse(atom_predicate, fh.readlines())
     
     with open("_000.pdb", 'r') as fh:
@@ -254,23 +165,56 @@ def test_remove_solvent():
     os.remove("_000.pdb")
 
 
-def test_set_atom_selection():
+def test_frame2file_noHOH_50():
+    
+    traj.frames2file(prefix="_", frames="50")
+    
+    with open(noHOH49, 'r') as fh:
+        f1 = it.filterfalse(atom_predicate, fh.readlines())
+    
+    with open("_049.pdb", 'r') as fh:
+        f2 = it.filterfalse(atom_predicate, fh.readlines())
+    
+    assert all(x == y for x, y in zip(f1, f2))
+    os.remove("_049.pdb")
+
+
+def test_frame2file_chainA_1():
     
     traj.set_atom_selection(selector="segid A")
     
     traj.frames2file(
-        prefix="segid_A_",
-        frames="0",
+        prefix="chain_A_",
+        frames="1",
         )
     
-    with open(chainid1, 'r') as fh:
+    with open(noHOH_chainA0, 'r') as fh:
         f1 = it.filterfalse(atom_predicate, fh.readlines())
     
-    with open("segid_A_000.pdb", 'r') as fh:
+    with open("chain_A_000.pdb", 'r') as fh:
         f2 = it.filterfalse(atom_predicate, fh.readlines())
     
     assert all(x == y for x, y in zip(f1, f2))
-    os.remove("segid_A_000.pdb")
+    os.remove("chain_A_000.pdb")
+
+
+def test_frame2file_chainA_50():
+    
+    traj.set_atom_selection(selector="segid A")
+    
+    traj.frames2file(
+        prefix="chain_A_",
+        frames="50",
+        )
+    
+    with open(noHOH_chainA49, 'r') as fh:
+        f1 = it.filterfalse(atom_predicate, fh.readlines())
+    
+    with open("chain_A_049.pdb", 'r') as fh:
+        f2 = it.filterfalse(atom_predicate, fh.readlines())
+    
+    assert all(x == y for x, y in zip(f1, f2))
+    os.remove("chain_A_049.pdb")
 
 
 def test_set_atom_selection_reset():
@@ -283,66 +227,52 @@ def test_set_atom_selection_reset():
     assert traj.atom_selection == "(protein or nucleic) and all"
 
 
-def test_set_atom_selection_2():
-
-    traj.frames2file(
-        prefix="all_",
-        frames="0",
-        )
-    
-    with open(noHOHtop, 'r') as fh:
-        f1 = it.filterfalse(atom_predicate, fh.readlines())
-    
-    with open("all_000.pdb", 'r') as fh:
-        f2 = it.filterfalse(atom_predicate, fh.readlines())
-    
-    assert all(x == y for x, y in zip(f1, f2))
-    os.remove("all_000.pdb")
-
-
-def test_aligned_1():
+def test_frame2file_aligned_1():
     
     traj.align_traj(inplace=True)
     
     d = {
-        "frames": "0",
-        "prefix": "test_mda_aligned_",
+        "frames": "1",
+        "prefix": "test_aligned_",
         "ext": "pdb"
         }
     
     traj.frames2file(**d)
     
-    with open(aligned0, 'r') as fh:
+    with open(noHOH_aligned0, 'r') as fh:
         f1 = it.filterfalse(atom_predicate, fh.readlines())
 
-    with open("test_mda_aligned_000.pdb", 'r') as fh:
+    with open("test_aligned_000.pdb", 'r') as fh:
         f2 = it.filterfalse(atom_predicate, fh.readlines())
     
     assert all(x == y for x, y in zip(f1, f2))
-    os.remove("test_mda_aligned_000.pdb")
+    os.remove("test_aligned_000.pdb")
 
-def test_aligned_2():
+
+def test_frame2file_aligned_50():
+    
+    traj.align_traj(inplace=True)
     
     d = {
         "frames": "50",
-        "prefix": "test_mda_aligned_",
+        "prefix": "test_aligned_",
         "ext": "pdb"
         }
     
     traj.frames2file(**d)
     
-    with open(aligned50, 'r') as fh:
+    with open(noHOH_aligned49, 'r') as fh:
         f1 = it.filterfalse(atom_predicate, fh.readlines())
-    
-    with open("test_mda_aligned_050.pdb", 'r') as fh:
+
+    with open("test_aligned_049.pdb", 'r') as fh:
         f2 = it.filterfalse(atom_predicate, fh.readlines())
     
     assert all(x == y for x, y in zip(f1, f2))
-    os.remove("test_mda_aligned_050.pdb")
+    os.remove("test_aligned_049.pdb")
 
 
-def test_reset_rmv_solvent():
-    traj.reset_rmv_solvent()
+def test_undo_rmv_solvent_1():
+    traj.undo_rmv_solvent()
     assert traj.atom_selection == "all and all"
 
 def test_rmsds_combined_1():
