@@ -217,6 +217,9 @@ extlinks = {
     "pypi": ("https://pypi.org/project/pip/", ""),
     "anaconda": ("https://www.anaconda.com/distribution/", ""),
     "mdtraj": ("https://github.com/mdtraj/%s", "mdtraj"),
+    "mdtrajdoc": ("http://mdtraj.org/1.9.0/index.html", ""),
+    "mdtdocrmvsol": ("http://mdtraj.org/1.9.0/api/generated/mdtraj.Trajectory.html?highlight=remove%20solvent#mdtraj.Trajectory.remove_solvent", ""),
+    "mdtdocim": ("http://mdtraj.org/1.9.0/api/generated/mdtraj.Trajectory.html?highlight=image_molecules#mdtraj.Trajectory.image_molecules", ""),
     "mdtselections": ("http://mdtraj.org/latest/atom_selection.html", ""),
     "taurenfiles": ("https://github.com/joaomcteixeira/Tauren-MD/blob/master/%s", "taurenfiles"),
     "taurenzip": ("https://github.com/joaomcteixeira/Tauren-MD/archive/master.zip", ""),
@@ -231,4 +234,6 @@ extlinks = {
     "treeoflife": ("https://github.com/joaomcteixeira/Tree-of-Life", ""),
     "treevision": ("https://github.com/joaomcteixeira/Tree-of-Life/blob/master/VISION.md", ""),
     "zenodo": ("https://zenodo.org/badge/latestdoi/152575798" , ""),
+    "doctrajtype": ("https://joaomcteixeira.github.io/Tauren-MD/taurenhtml/html/rstfiles/configuration_file.html#trajectory-type", ""),
+    "npsavetxt": ("https://docs.scipy.org/doc/numpy/reference/generated/numpy.savetxt.html", ""),
     }
