@@ -193,10 +193,10 @@ class TaurenTraj(ABC):
         If not defined assumes "all".
         """
         try:
-            return self._atom_selection + "222"
+            return self._atom_selection
         
         except AttributeError:
-            return "all"
+            return "(all)"
     
     @atom_selection.setter
     def atom_selection(self, selector):
@@ -215,7 +215,7 @@ class TaurenTraj(ABC):
                 f" '{type(selector)}' given."
                 )
         
-        self._atom_selection = selector
+        self._atom_selection = f"({selector})"
     
     @property
     @abstractmethod
@@ -385,15 +385,16 @@ class TaurenTraj(ABC):
         if not(isinstance(inplace, bool)):
             raise TypeError("inplace is NOT bool.")
         
-        self._align_traj(
-            file_name,
-            inplace,
-            **kwargs,
-            )
+        kw = {
+            "file_name": file_name,
+            "inplace": inplace,
+            }
+        
+        tmp = self._align_traj(**{**kwargs, **kw})
         
         log.info("    done")
         
-        return
+        return tmp
     
     @abstractmethod
     def _align_traj(self):
@@ -843,7 +844,7 @@ class TaurenTraj(ABC):
         
         self.observables.append(**{**kwargs, **storagedata})
         
-        return self.observables.last_index()
+        return self.observables.last_index
     
     @abstractmethod
     def _calc_rmsds_combined_chains(self):
@@ -983,8 +984,6 @@ class TaurenTraj(ABC):
         
         log.info("* Calculating RMSDs for each chain separately")
         
-        self._check_chains_argument(chains)
-        
         chain_list = self._gen_chain_list(chains)  # abstractmethod
         
         rmsds, chains_headers = self._calc_rmsds_separated_chains(
@@ -1022,7 +1021,7 @@ class TaurenTraj(ABC):
         
         self.observables.append(**{**kwargs, **storagedata})
         
-        return self.observables.last_index()
+        return self.observables.last_index
     
     @abstractmethod
     def _calc_rmsds_separated_chains(self):
@@ -1087,6 +1086,7 @@ class TaurenTraj(ABC):
             sep=",",
             header="",
             tojson=False,
+            fmt="%.5f",
             **kwargs,
             ):
         """
@@ -1128,13 +1128,25 @@ class TaurenTraj(ABC):
             Any text you wish to add as comment as file header.
             Headers are identified by "#".
             Defaults to empty string.
+        
+        fmt : str
+            String formatter in case *data* is Numpy array type.
+            According to :npsavetxt:`numpy .savetxt doc <>`.
+            Defaults to "%.5f".
         """
+        try:
+            self.observables[index]
+        
+        except IndexError:
+            log.info(f"*index* '{index}' does not exist in *observables*.")
+            log.info("Ignoring...")
+            return
         
         filename = self._gen_export_file_name(
-            file_name,
             index,
-            prefix,
-            suffix,
+            file_name=file_name,
+            prefix=prefix,
+            suffix=suffix,
             )
         
         log.info(f"* Exporting {filename}")
@@ -1142,21 +1154,34 @@ class TaurenTraj(ABC):
         log.debug(f"data type: {type(self.observables[index]['data'])}")
         
         if tojson:
-            self._export_data_json(index, filename)
+            self._export_data_json(index, filename, header)
         
         else:
             if isinstance(self.observables[index]["data"], np.ndarray):
-                self._export_data_array(index, filename, sep, header=header)
+                self._export_data_array(
+                    index,
+                    filename,
+                    sep,
+                    header=header,
+                    fmt=fmt,
+                    )
         
             else:
-                self._export_data_json(index, filename)
+                self._export_data_json(index, filename, header)
         
         log.info(f"    saved {filename}")
         
         return
     
     @core.log_args
-    def _gen_export_file_name(self, file_name, index, prefix, suffix):
+    def _gen_export_file_name(
+            self,
+            index,
+            *,
+            file_name=None,
+            prefix=None,
+            suffix='csv',
+            ):
         """
         Generates a filename based on the data information.
         """
@@ -1171,15 +1196,22 @@ class TaurenTraj(ABC):
             prefix += "_"
         
         filename = (
-            f"{prefix}"
+            f"{'' if file_name else (prefix or '')}"
             f"{next((x for x in tablename if x), f'data_index_{index}')}"
-            f".{suffix}"
+            f".{suffix or 'csv'}"
             )
         
         return filename
     
     @core.log_args
-    def _export_data_array(self, index, filename, sep, header=''):
+    def _export_data_array(
+            self,
+            index,
+            filename,
+            sep,
+            header='',
+            fmt="%.5f",
+            ):
         """
         Template to export numpy data.
         """
@@ -1211,12 +1243,13 @@ class TaurenTraj(ABC):
             self.observables[index]["data"],
             delimiter=sep,
             header=header,
+            fmt=fmt,
             )
         
         return
     
     @core.log_args
-    def _export_data_json(self, index, filename):
+    def _export_data_json(self, index, filename, header):
         """
         Template to export data as plain text.
         """
@@ -1226,8 +1259,11 @@ class TaurenTraj(ABC):
         results_copy = self.observables[index].copy()
         
         # adapts data before exporting
-        if isinstance(results_copy["data"], np.ndarray):
-            results_copy["data"] = results_copy["data"].tolist()
+        for key, value in results_copy.items():
+            if isinstance(value, np.ndarray):
+                results_copy[key] = value.tolist()
+        
+        results_copy["header"] = header
         
         with open(filename, 'w') as fh:
             json.dump(
@@ -1280,9 +1316,9 @@ class TaurenMDAnalysis(TaurenTraj):
             atmsel = self._atom_selection
         
         except AttributeError:
-            atmsel = "all"
+            atmsel = "(all)"
         
-        return f"({self._rmv_solvent_selector}) and ({atmsel})"
+        return f"({self._rmv_solvent_selector}) and {atmsel}"
     
     @TaurenTraj.n_residues.getter
     def n_residues(self):
@@ -1310,8 +1346,8 @@ class TaurenMDAnalysis(TaurenTraj):
     @core.log_args
     def _align_traj(
             self,
-            file_name,
-            inplace,
+            file_name="aligned_traj",
+            inplace=False,
             **kwargs,
             ):
         
@@ -1914,9 +1950,14 @@ class TrajObservables(list):
         """
         return str(self)
     
+    @property
     def last_index(self):
         """
-        Returns the number of the last index.
+        The number of the last index.
         """
         
         return len(self) - 1
+    
+    @last_index.setter
+    def last_index(self, x):
+        raise AttributeError("Can't set *last_index* manually")
