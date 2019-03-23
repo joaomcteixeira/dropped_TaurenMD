@@ -4,6 +4,7 @@ import os
 import itertools as it
 import pytest
 import numpy as np
+import json
 
 from tauren import tauren
 from tauren import load
@@ -49,7 +50,6 @@ rmsd_noHOH_A = os.path.join(
     "rmsds_combined_chains_-protein_or_nucleic-_and_-all-_A.csv"
     )
 
-
 rmsd_sep_solvent = os.path.join(
     file_path,
     rf,
@@ -70,6 +70,8 @@ rmsd_sep_noHOH_A = os.path.join(
     mdtype,
     "rmsds_separated_chains_-protein_or_nucleic-_and_-all-_A.csv"
     )
+
+dataindex6 = os.path.join(file_path, rf, "data_index_6.json")
 
 
 def atom_predicate(line):
@@ -499,5 +501,99 @@ def test_export_data_6():
     assert f1 == f2
     os.remove(rmsdtest)
 
+def test_gen_export_file_name_1():
+    
+    index = 0
+    file_name = None
+    prefix = None
+    suffix = None
+    
+    name = traj._gen_export_file_name(
+        index,
+        file_name=file_name,
+        prefix=prefix,
+        suffix=suffix,
+        )
+
+    assert name == "rmsds_combined_chains_-all-_and_-all-_all.csv"
 
 
+def test_gen_export_file_name_2():
+    
+    index = 0
+    file_name = None
+    prefix = "yeahh"
+    suffix = None
+    
+    name = traj._gen_export_file_name(
+        index,
+        file_name=file_name,
+        prefix=prefix,
+        suffix=suffix,
+        )
+    
+    assert name == "yeahh_rmsds_combined_chains_-all-_and_-all-_all.csv"
+
+
+def test_gen_export_file_name_3():
+    
+    index = 0
+    file_name = None
+    prefix = "yeahh"
+    suffix = "txt"
+    
+    name = traj._gen_export_file_name(
+        index,
+        file_name=file_name,
+        prefix=prefix,
+        suffix=suffix,
+        )
+    
+    assert name == "yeahh_rmsds_combined_chains_-all-_and_-all-_all.txt"
+
+
+def test_gen_export_file_name_4():
+    
+    index = 0
+    file_name = "superfile"
+    prefix = "yeahh"
+    suffix = "txt"
+    
+    name = traj._gen_export_file_name(
+        index,
+        file_name=file_name,
+        prefix=prefix,
+        suffix=suffix,
+        )
+    
+    assert name == "superfile.txt"
+
+
+def test_export_json_1():
+    
+    traj.observables.append(
+        "this is super data",
+        info1 = "with some info",
+        array1 = np.arange(20),
+        )
+    
+    traj.export_data(
+        6,
+        tojson=True,
+        suffix="json",
+        header="""
+        Super header:
+        I am not free for doing what I want,
+        I am free for loving  what I do,
+        - someone unknown -
+        """,
+        )
+    
+    with open("data_index_6.json", 'r') as fh:
+        ind6 = json.load(fh)
+    
+    with open(dataindex6, 'r') as fh:
+        refjson6 = json.load(fh)
+    
+    assert ind6 == refjson6
+    os.remove("data_index_6.json")
