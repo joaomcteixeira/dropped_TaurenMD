@@ -215,7 +215,7 @@ class TaurenTraj(ABC):
                 f" '{type(selector)}' given."
                 )
         
-        self._atom_selection = f"({selector})"
+        self._atom_selection = selector
     
     @property
     @abstractmethod
@@ -492,11 +492,11 @@ class TaurenTraj(ABC):
         log.info("* Setting atom selection:")
         log.debug(f"<selection>: {selector}")
         
-        if selector is None:
+        if selector is None or selector == "all":
             self.atom_selection = "all"
         
         else:
-            self.atom_selection = selector
+            self.atom_selection = f"({selector})"
         
         log.info(f"    atom selection set to {self.atom_selection}")
         
@@ -829,6 +829,8 @@ class TaurenTraj(ABC):
         
         data = np.vstack((frames_array, combined_rmsds)).T
         
+        chain_name = self._gen_chains_filename(chains)
+        
         storagedata = {
             "data": data,
             "solvent": self._solvent_selector,
@@ -840,7 +842,7 @@ class TaurenTraj(ABC):
                 f"{storage_key}"
                 f"_{self._solvent_selector}"
                 f"_{self._atom_selection}"
-                f"_{chains}"
+                f"_{chain_name}"
                 ).translate(self.filenametranslation)
             }
         
@@ -923,6 +925,20 @@ class TaurenTraj(ABC):
         # what each subclass should return when *chains* is "all"
         # in _gen_chain_list()
         pass
+    
+    def _gen_chains_filename(self, chains):
+        """
+        Generates a string for file names from *chains* input.
+        
+        requires *chains* to be processed by _gen_chain_list_all
+        to confirm chains is valid.
+        """
+        
+        if chains == "all":
+            return chains
+        
+        else:
+            return "-" + "-".join(chains.split(","))
     
     @core.log_args
     def calc_rmsds_separated_chains(
@@ -1008,6 +1024,8 @@ class TaurenTraj(ABC):
             axis=1,
             )
         
+        chain_name = self._gen_chains_filename(chains)
+        
         storagedata = {
             "data": data,
             "solvent": self._solvent_selector,
@@ -1019,7 +1037,7 @@ class TaurenTraj(ABC):
                 f"{storage_key}"
                 f"_{self._solvent_selector}"
                 f"_{self._atom_selection}"
-                f"_{chains}"
+                f"_{chain_name}"
                 ).translate(self.filenametranslation)
             }
         
@@ -1320,9 +1338,9 @@ class TaurenMDAnalysis(TaurenTraj):
             atmsel = self._atom_selection
         
         except AttributeError:
-            atmsel = "(all)"
+            atmsel = "all"
         
-        return f"({self._solvent_selector}) and {atmsel}"
+        return f"{self._solvent_selector} and {atmsel}"
     
     @TaurenTraj.n_residues.getter
     def n_residues(self):
@@ -1334,7 +1352,7 @@ class TaurenMDAnalysis(TaurenTraj):
     
     @core.log_args
     def _remove_solvent(self, **kwargs):
-        self._solvent_selector = "protein or nucleic"
+        self._solvent_selector = "(protein or nucleic)"
         log.info("    solvent removed")
         return
     
@@ -1653,10 +1671,14 @@ class TaurenMDTraj(TaurenTraj):
             exclude=exclude,
             )
         
-        self._solvent_selector = (
-            "noHOH"
-            f"{('-'.join(exclude) if exclude else '')}"
-            )
+        if exclude:
+            self._solvent_selector = (
+                "(noSolvent-exc-"
+                f"{('-'.join(exclude) if exclude else '')})"
+                )
+        
+        else:
+            self._solvent_selector = "noSolvent"
             
         log.info(f"    solventless trajectory: {self.trajectory}")
         

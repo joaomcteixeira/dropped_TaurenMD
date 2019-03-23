@@ -17,17 +17,32 @@ trajtype = "mdanalysis"
 trajectory = os.path.join(file_path, rf, "traj_test_PCNA.dcd")
 topology = os.path.join(file_path, rf, "topology_test.pdb")
 
-solvent0 = os.path.join(file_path, rf, "solvent_all_frame0.pdb")
-solvent49 = os.path.join(file_path, rf, "solvent_all_frame49.pdb")
+solvent0 = os.path.join(file_path, rf, mdtype, "solvent_all_frame0.pdb")
+solvent49 = os.path.join(file_path, rf, mdtype, "solvent_all_frame49.pdb")
 
-noHOH0 = os.path.join(file_path, rf, "noHOH_all_frame0.pdb")
-noHOH49 = os.path.join(file_path, rf, "noHOH_all_frame49.pdb")
+noHOH0 = os.path.join(file_path, rf, mdtype, "noHOH_all_frame0.pdb")
+noHOH49 = os.path.join(file_path, rf, mdtype, "noHOH_all_frame49.pdb")
 
-noHOH_chainA0 = os.path.join(file_path, rf, "noHOH_chainA_frame0.pdb")
-noHOH_chainA49 = os.path.join(file_path, rf, "noHOH_chainA_frame49.pdb")
+noHOH_chainA0 = os.path.join(file_path, rf, mdtype, "noHOH_chainA_frame0.pdb")
+noHOH_chainA49 = os.path.join(
+    file_path,
+    rf,
+    mdtype,
+    "noHOH_chainA_frame49.pdb",
+    )
 
-noHOH_aligned0 = os.path.join(file_path, rf, "noHOH_all_aligned_frame0.pdb")
-noHOH_aligned49 = os.path.join(file_path, rf, "noHOH_all_aligned_frame49.pdb")
+noHOH_aligned0 = os.path.join(
+    file_path,
+    rf,
+    mdtype,
+    "noHOH_all_aligned_frame0.pdb",
+    )
+noHOH_aligned49 = os.path.join(
+    file_path,
+    rf,
+    mdtype,
+    "noHOH_all_aligned_frame49.pdb",
+    )
 
 rmsd_solvent = os.path.join(
     file_path,
@@ -152,12 +167,12 @@ def test_frameslice_4():
     assert traj.n_frames == 100
 
 
-def test_rmv_solvent_selector_default():
-    assert traj._rmv_solvent_selector == "all"
+def test_solvent_selector_default():
+    assert traj._solvent_selector == "all"
 
 
 def test_default_atom_selection():
-    assert traj.atom_selection == "(all) and (all)"
+    assert traj.atom_selection == "all and all"
 
 
 def test_frame2file_with_solvent_1():
@@ -190,11 +205,11 @@ def test_frame2file_with_solvent_50():
 
 def test_remove_solvent_selector():
     traj.remove_solvent()
-    assert traj._rmv_solvent_selector == "protein or nucleic"
+    assert traj._solvent_selector == "(protein or nucleic)"
 
 
 def test_remove_solvent_atom_selection():
-    assert traj.atom_selection == "(protein or nucleic) and (all)"
+    assert traj.atom_selection == "(protein or nucleic) and all"
 
 
 def test_frame2file_noHOH_1():
@@ -270,7 +285,7 @@ def test_set_atom_selection_reset():
     
     traj.set_atom_selection(selector=None)
     
-    assert traj.atom_selection == "(protein or nucleic) and (all)"
+    assert traj.atom_selection == "(protein or nucleic) and all"
 
 
 def test_frame2file_aligned_1():
@@ -319,7 +334,7 @@ def test_frame2file_aligned_50():
 
 def test_undo_rmv_solvent_1():
     traj.undo_rmv_solvent()
-    assert traj.atom_selection == "(all) and (all)"
+    assert traj.atom_selection == "all and all"
 
 
 def test_cross_data_1():
@@ -376,11 +391,13 @@ def test_export_data_1():
     with open(rmsd_solvent, 'r') as fh:
         f1 = fh.readlines()
     
-    with open("rmsds_combined_chains_-all-_and_-all-_all.csv", 'r') as fh:
+    rmsdtest = "rmsds_combined_chains_all_all_all.csv"
+    
+    with open(rmsdtest, 'r') as fh:
         f2 = fh.readlines()
     
     assert f1 == f2
-    os.remove("rmsds_combined_chains_-all-_and_-all-_all.csv")
+    # os.remove(rmsdtest)
 
 
 def test_rmsds_combined_2():
@@ -399,13 +416,13 @@ def test_export_data_2():
     with open(rmsd_noHOH, 'r') as fh:
         f1 = fh.readlines()
     
-    rmsdtest = "rmsds_combined_chains_-protein_or_nucleic-_and_-all-_all.csv"
+    rmsdtest = "rmsds_combined_chains_-protein_or_nucleic-_all_all.csv"
     
     with open(rmsdtest, 'r') as fh:
         f2 = fh.readlines()
     
     assert f1 == f2
-    os.remove(rmsdtest)
+    # os.remove(rmsdtest)
 
 
 def test_rmsds_combined_3():
@@ -422,41 +439,42 @@ def test_export_data_3():
     with open(rmsd_noHOH_A, 'r') as fh:
         f1 = fh.readlines()
     
-    rmsdtest = "rmsds_combined_chains_-protein_or_nucleic-_and_-all-_A.csv"
+    rmsdtest = "rmsds_combined_chains_-protein_or_nucleic-_all_-A.csv"
     
     with open(rmsdtest, 'r') as fh:
         f2 = fh.readlines()
     
     assert f1 == f2
-    os.remove(rmsdtest)
+    # os.remove(rmsdtest)
 
 
-def test_rmsds_separated_1():
+def test_rmsds_combined_4():
     
-    traj.undo_rmv_solvent()
+    key = traj.calc_rmsds_combined_chains(chains="A,B")
     
-    key = traj.calc_rmsds_separated_chains()
-    
-    assert len(traj.observables) == 4
+    assert len(traj.observables) == 3
 
 
 def test_export_data_4():
     
     traj.export_data(3)
     
-    with open(rmsd_sep_solvent, 'r') as fh:
+    with open(rmsd_noHOH_A, 'r') as fh:
         f1 = fh.readlines()
     
-    with open("rmsds_separated_chains_-all-_and_-all-_all.csv", 'r') as fh:
+    rmsdtest = "rmsds_combined_chains_-protein_or_nucleic-_all_-A-B.csv"
+    
+    with open(rmsdtest, 'r') as fh:
         f2 = fh.readlines()
     
     assert f1 == f2
-    os.remove("rmsds_separated_chains_-all-_and_-all-_all.csv")
+    # os.remove(rmsdtest)
 
 
-def test_rmsds_separated_2():
+
+def test_rmsds_separated_1():
     
-    traj.remove_solvent()
+    traj.undo_rmv_solvent()
     
     key = traj.calc_rmsds_separated_chains()
     
@@ -467,21 +485,23 @@ def test_export_data_5():
     
     traj.export_data(4)
     
-    with open(rmsd_sep_noHOH, 'r') as fh:
+    with open(rmsd_sep_solvent, 'r') as fh:
         f1 = fh.readlines()
     
-    rmsdtest = "rmsds_separated_chains_-protein_or_nucleic-_and_-all-_all.csv"
+    rmsdtest = "rmsds_separated_chains_all_all_all.csv"
     
     with open(rmsdtest, 'r') as fh:
         f2 = fh.readlines()
     
     assert f1 == f2
-    os.remove(rmsdtest)
+    # os.remove(rmsdtest)
 
 
-def test_rmsds_separated_3():
+def test_rmsds_separated_2():
     
-    key = traj.calc_rmsds_separated_chains(chains="A")
+    traj.remove_solvent()
+    
+    key = traj.calc_rmsds_separated_chains()
     
     assert len(traj.observables) == 6
 
@@ -490,16 +510,39 @@ def test_export_data_6():
     
     traj.export_data(5)
     
-    with open(rmsd_sep_noHOH_A, 'r') as fh:
+    with open(rmsd_sep_noHOH, 'r') as fh:
         f1 = fh.readlines()
     
-    rmsdtest = "rmsds_separated_chains_-protein_or_nucleic-_and_-all-_A.csv"
+    rmsdtest = "rmsds_separated_chains_-protein_or_nucleic-_all_all.csv"
     
     with open(rmsdtest, 'r') as fh:
         f2 = fh.readlines()
     
     assert f1 == f2
-    os.remove(rmsdtest)
+    # os.remove(rmsdtest)
+
+
+def test_rmsds_separated_3():
+    
+    key = traj.calc_rmsds_separated_chains(chains="A")
+    
+    assert len(traj.observables) == 7
+
+
+def test_export_data_7():
+    
+    traj.export_data(6)
+    
+    with open(rmsd_sep_noHOH_A, 'r') as fh:
+        f1 = fh.readlines()
+    
+    rmsdtest = "rmsds_separated_chains_-protein_or_nucleic-_all_-A.csv"
+    
+    with open(rmsdtest, 'r') as fh:
+        f2 = fh.readlines()
+    
+    assert f1 == f2
+    # os.remove(rmsdtest)
 
 def test_gen_export_file_name_1():
     
@@ -515,7 +558,7 @@ def test_gen_export_file_name_1():
         suffix=suffix,
         )
 
-    assert name == "rmsds_combined_chains_-all-_and_-all-_all.csv"
+    assert name == "rmsds_combined_chains_all_all_all.csv"
 
 
 def test_gen_export_file_name_2():
@@ -532,7 +575,7 @@ def test_gen_export_file_name_2():
         suffix=suffix,
         )
     
-    assert name == "yeahh_rmsds_combined_chains_-all-_and_-all-_all.csv"
+    assert name == "yeahh_rmsds_combined_chains_all_all_all.csv"
 
 
 def test_gen_export_file_name_3():
@@ -549,7 +592,7 @@ def test_gen_export_file_name_3():
         suffix=suffix,
         )
     
-    assert name == "yeahh_rmsds_combined_chains_-all-_and_-all-_all.txt"
+    assert name == "yeahh_rmsds_combined_chains_all_all_all.txt"
 
 
 def test_gen_export_file_name_4():
@@ -578,7 +621,7 @@ def test_export_json_1():
         )
     
     traj.export_data(
-        6,
+        7,
         tojson=True,
         suffix="json",
         header="""
