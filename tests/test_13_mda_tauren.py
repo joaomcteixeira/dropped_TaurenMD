@@ -3,6 +3,7 @@
 import os
 import itertools as it
 import pytest
+import numpy as np
 
 from tauren import tauren
 from tauren import load
@@ -26,6 +27,49 @@ noHOH_chainA49 = os.path.join(file_path, rf, "noHOH_chainA_frame49.pdb")
 
 noHOH_aligned0 = os.path.join(file_path, rf, "noHOH_all_aligned_frame0.pdb")
 noHOH_aligned49 = os.path.join(file_path, rf, "noHOH_all_aligned_frame49.pdb")
+
+rmsd_solvent = os.path.join(
+    file_path,
+    rf,
+    mdtype,
+    "rmsds_combined_chains_-all-_and_-all-_all.csv"
+    )
+
+rmsd_noHOH = os.path.join(
+    file_path,
+    rf,
+    mdtype,
+    "rmsds_combined_chains_-protein_or_nucleic-_and_-all-_all.csv"
+    )
+
+rmsd_noHOH_A = os.path.join(
+    file_path,
+    rf,
+    mdtype,
+    "rmsds_combined_chains_-protein_or_nucleic-_and_-all-_A.csv"
+    )
+
+
+rmsd_sep_solvent = os.path.join(
+    file_path,
+    rf,
+    mdtype,
+    "rmsds_separated_chains_-all-_and_-all-_all.csv"
+    )
+
+rmsd_sep_noHOH = os.path.join(
+    file_path,
+    rf,
+    mdtype,
+    "rmsds_separated_chains_-protein_or_nucleic-_and_-all-_all.csv"
+    )
+
+rmsd_sep_noHOH_A = os.path.join(
+    file_path,
+    rf,
+    mdtype,
+    "rmsds_separated_chains_-protein_or_nucleic-_and_-all-_A.csv"
+    )
 
 
 def atom_predicate(line):
@@ -276,6 +320,46 @@ def test_undo_rmv_solvent_1():
     assert traj.atom_selection == "(all) and (all)"
 
 
+def test_cross_data_1():
+    
+    a0 = np.loadtxt(rmsd_solvent, delimiter=",")
+    a1 = np.loadtxt(rmsd_noHOH, delimiter=",")
+    a2 = np.loadtxt(rmsd_noHOH_A, delimiter=",")
+    
+    assert np.array_equal(a0[:, 0], a1[:, 0])
+    assert np.array_equal(a0[:, 0], a2[:, 0])
+    
+    assert not(np.array_equal(a0[:, 1], a1[:, 1]))
+    assert not(np.array_equal(a0[:, 1], a2[:, 1]))
+    assert not(np.array_equal(a1[:, 1], a2[:, 1]))
+
+
+def test_cross_data_2():
+    
+    a0 = np.loadtxt(rmsd_sep_solvent, delimiter=",")
+    a1 = np.loadtxt(rmsd_sep_noHOH, delimiter=",")
+    a2 = np.loadtxt(rmsd_sep_noHOH_A, delimiter=",")
+    
+    assert np.array_equal(a0[:, 0], a1[:, 0])
+    assert np.array_equal(a0[:, 0], a2[:, 0])
+    
+    assert np.array_equal(a0[:, 1], a1[:, 1])
+    assert np.array_equal(a0[:, 1], a2[:, 1])
+    
+    assert np.array_equal(a0[:, 2], a1[:, 2])
+    assert np.array_equal(a0[:, 3], a1[:, 3])
+    
+    assert a0.shape[1] > a1.shape[1] > a2.shape[1]
+
+
+def test_cross_data_3():
+    
+    a0 = np.loadtxt(rmsd_noHOH_A, delimiter=",")
+    a1 = np.loadtxt(rmsd_sep_noHOH_A, delimiter=",")
+    
+    assert np.array_equal(a0[:, 1], a1[:, 1])
+
+
 def test_rmsds_combined_1():
     
     key = traj.calc_rmsds_combined_chains()
@@ -286,6 +370,15 @@ def test_rmsds_combined_1():
 def test_export_data_1():
     
     traj.export_data(0)
+    
+    with open(rmsd_solvent, 'r') as fh:
+        f1 = fh.readlines()
+    
+    with open("rmsds_combined_chains_-all-_and_-all-_all.csv", 'r') as fh:
+        f2 = fh.readlines()
+    
+    assert f1 == f2
+    os.remove("rmsds_combined_chains_-all-_and_-all-_all.csv")
 
 
 def test_rmsds_combined_2():
@@ -300,6 +393,17 @@ def test_rmsds_combined_2():
 def test_export_data_2():
     
     traj.export_data(1)
+    
+    with open(rmsd_noHOH, 'r') as fh:
+        f1 = fh.readlines()
+    
+    rmsdtest = "rmsds_combined_chains_-protein_or_nucleic-_and_-all-_all.csv"
+    
+    with open(rmsdtest, 'r') as fh:
+        f2 = fh.readlines()
+    
+    assert f1 == f2
+    os.remove(rmsdtest)
 
 
 def test_rmsds_combined_3():
@@ -313,19 +417,87 @@ def test_export_data_3():
     
     traj.export_data(2)
     
+    with open(rmsd_noHOH_A, 'r') as fh:
+        f1 = fh.readlines()
+    
+    rmsdtest = "rmsds_combined_chains_-protein_or_nucleic-_and_-all-_A.csv"
+    
+    with open(rmsdtest, 'r') as fh:
+        f2 = fh.readlines()
+    
+    assert f1 == f2
+    os.remove(rmsdtest)
 
-    # assert isinstance(key.datatype, str)
-    # assert isinstance(key.identifier, str)
-    # assert isinstance(key.filenaming, str)    
-    
-    # traj.export_data(key)
 
-# def test_rmsds_combined_2():
+def test_rmsds_separated_1():
     
-    # key = traj.calc_rmsds_separated_chains()
+    traj.undo_rmv_solvent()
     
-    # assert isinstance(key.datatype, str)
-    # assert isinstance(key.identifier, str)
-    # assert isinstance(key.filenaming, str)  
+    key = traj.calc_rmsds_separated_chains()
     
-    # traj.export_data(key)
+    assert len(traj.observables) == 4
+
+
+def test_export_data_4():
+    
+    traj.export_data(3)
+    
+    with open(rmsd_sep_solvent, 'r') as fh:
+        f1 = fh.readlines()
+    
+    with open("rmsds_separated_chains_-all-_and_-all-_all.csv", 'r') as fh:
+        f2 = fh.readlines()
+    
+    assert f1 == f2
+    os.remove("rmsds_separated_chains_-all-_and_-all-_all.csv")
+
+
+def test_rmsds_separated_2():
+    
+    traj.remove_solvent()
+    
+    key = traj.calc_rmsds_separated_chains()
+    
+    assert len(traj.observables) == 5
+
+
+def test_export_data_5():
+    
+    traj.export_data(4)
+    
+    with open(rmsd_sep_noHOH, 'r') as fh:
+        f1 = fh.readlines()
+    
+    rmsdtest = "rmsds_separated_chains_-protein_or_nucleic-_and_-all-_all.csv"
+    
+    with open(rmsdtest, 'r') as fh:
+        f2 = fh.readlines()
+    
+    assert f1 == f2
+    os.remove(rmsdtest)
+
+
+def test_rmsds_separated_3():
+    
+    key = traj.calc_rmsds_separated_chains(chains="A")
+    
+    assert len(traj.observables) == 6
+
+
+def test_export_data_6():
+    
+    traj.export_data(5)
+    
+    with open(rmsd_sep_noHOH_A, 'r') as fh:
+        f1 = fh.readlines()
+    
+    rmsdtest = "rmsds_separated_chains_-protein_or_nucleic-_and_-all-_A.csv"
+    
+    with open(rmsdtest, 'r') as fh:
+        f2 = fh.readlines()
+    
+    assert f1 == f2
+    os.remove(rmsdtest)
+
+
+
