@@ -831,13 +831,15 @@ class TaurenTraj(ABC):
         
         storagedata = {
             "data": data,
-            "selection": self.atom_selection,
+            "solvent": self._solvent_selector,
+            "atom_selection": self._atom_selection,
             "identifier": chains,
             "ref_frame": ref_frame,
             "columns": ["frames"] + column_headers,
             "name": (
                 f"{storage_key}"
-                f"_{self.atom_selection}"
+                f"_{self._solvent_selector}"
+                f"_{self._atom_selection}"
                 f"_{chains}"
                 ).translate(self.filenametranslation)
             }
@@ -1008,13 +1010,15 @@ class TaurenTraj(ABC):
         
         storagedata = {
             "data": data,
-            "selection": self.atom_selection,
+            "solvent": self._solvent_selector,
+            "atom_selection": self._atom_selection,
             "identifier": chains,
             "ref_frame": ref_frame,
             "columns": ["frames"] + chains_headers,
             "name": (
                 f"{storage_key}"
-                f"_{self.atom_selection}"
+                f"_{self._solvent_selector}"
+                f"_{self._atom_selection}"
                 f"_{chains}"
                 ).translate(self.filenametranslation)
             }
@@ -1318,7 +1322,7 @@ class TaurenMDAnalysis(TaurenTraj):
         except AttributeError:
             atmsel = "(all)"
         
-        return f"({self._rmv_solvent_selector}) and {atmsel}"
+        return f"({self._solvent_selector}) and {atmsel}"
     
     @TaurenTraj.n_residues.getter
     def n_residues(self):
@@ -1330,13 +1334,13 @@ class TaurenMDAnalysis(TaurenTraj):
     
     @core.log_args
     def _remove_solvent(self, **kwargs):
-        self._rmv_solvent_selector = "protein or nucleic"
+        self._solvent_selector = "protein or nucleic"
         log.info("    solvent removed")
         return
     
     def _undo_rmv_solvent(self):
         log.debug("activated solvent")
-        self._rmv_solvent_selector = "all"
+        self._solvent_selector = "all"
         return
     
     def _image_molecules(self, **kwargs):
@@ -1571,6 +1575,8 @@ class TaurenMDTraj(TaurenTraj):
         
         super().__init__(trajectory, topology)
         
+        self._solvent_selector = "all"
+        
         return
     
     def _read_traj_top_input(self, traj_path, topo_path):
@@ -1631,11 +1637,27 @@ class TaurenMDTraj(TaurenTraj):
         """
         log.info(f"    received trajectory: {self.trajectory}")
         
+        if not(
+                isinstance(exclude, list)
+                or isinstance(exclude, np.ndarray)
+                or exclude is None
+                ):
+            
+            raise TypeError(
+                "*exclude* must be list or array."
+                f" '{type(exclude)}' given instead."
+                )
+        
         new_traj = self.trajectory.remove_solvent(
             inplace=False,
             exclude=exclude,
             )
         
+        self._solvent_selector = (
+            "noHOH"
+            f"{('-'.join(exclude) if exclude else '')}"
+            )
+            
         log.info(f"    solventless trajectory: {self.trajectory}")
         
         self.original_traj = new_traj
@@ -1643,6 +1665,7 @@ class TaurenMDTraj(TaurenTraj):
     
     def _undo_rmv_solvent(self):
         self._read_traj_top_input(self.trajpath, self.topopath)
+        self._solvent_selector = "all"
     
     @core.log_args
     def _image_molecules(
