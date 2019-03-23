@@ -141,6 +141,7 @@ General project organization:
       - There should be a dunder *abstractmethod* in ``TaurenTraj`` for every method there implemented that is an interface to a specific MD lib operation.
       - Documented interface should be provided **only** by ``TaurenTraj``, from here, the program workflow is directed to the corresponding hidden methods of the specific subclasses thta configure the algorithms for the different MD analysis libs implemented. In this way, subclasses inheriting from ``TaurenTraj`` should provide **only** dunder methods. Exceptions are allowed for **@properties**.
       - In this way, documentation provided in ``TaurenTraj`` methods should cover all subclass implementations.
+      - DOCSTRINGS in @abstractmethods can orient their subclass implementation.
       - If a given subclass does not provides a routine for a given method in ``TaurenTraj``, a ``Not implemented`` message should be logged to warn the user and that action ignored.
       - **@staticmethods** and **@classmethods** should be testable by their *return* value.
 
