@@ -1,6 +1,7 @@
 import os   
 
 from tauren import produce, load
+from tests import commons
 
 file_path = "tests"
 rf = "reference"
@@ -212,15 +213,9 @@ def test_produce_combined_1():
         plot_rmsd_combined_chains=plot_rmsd_combined_chains,
         )
     
-    with open(rmsd_noHOH, 'r') as fh:
-        f1 = fh.readlines()
-    
     rmsdtest = "data_rmsds_combined_chains_-protein_or_nucleic-_all_all.csv"
     
-    with open(rmsdtest, 'r') as fh:
-        f2 = fh.readlines()
-    
-    assert f1 == f2
+    assert commons.compare_csv(rmsd_noHOH, rmsdtest)
     os.remove(rmsdtest)
     os.remove("plot_rmsds_combined_chains_-protein_or_nucleic-_all_all.pdf")
 
@@ -238,12 +233,30 @@ def test_produce_combined_1():
         "tojson": False
         }
         
-    plot_rmsd_separated_chains  = {
-        "label": None,
-       "suptitle": "RMSDs per chain",
+    plot_rmsd_chain_per_subplot  = {
+        "labels": None,
+        "suptitle": "RMSDs per chain",
         "x_label": "Frame Number",
         "y_label": "RMSDs",
-        "color": "blue",
+        "colors": None,
+        "alpha": 0.7,
+        "grid": True,
+        "grid_color": "lightgrey",
+        "grid_ls": "-",
+        "grid_lw": 1,
+        "grid_alpha": 0.5,
+        "legend": True,
+        "legend_fs": 6,
+        "legend_loc": 4,
+        "fig_name": None
+        }
+    
+    plot_rmsd_individual_chains_one_subplot = {
+        "labels": None,
+        "suptitle": "Chains' RMSDs",
+        "x_label": "Frame Number",
+        "y_label": "RMSDs",
+        "colors": None,
         "alpha": 0.7,
         "grid": True,
         "grid_color": "lightgrey",
@@ -260,18 +273,14 @@ def test_produce_combined_1():
         traj,
         calc_rmsds_separated_chains,
         export_data=export_data,
-        plot_rmsd_separated_chains=plot_rmsd_separated_chains,
+        plot_rmsd_chain_per_subplot=plot_rmsd_chain_per_subplot,
+        plot_rmsd_individual_chains_one_subplot=plot_rmsd_individual_chains_one_subplot,
         )
-    
-    with open(rmsd_sep_noHOH, 'r') as fh:
-        f1 = fh.readlines()
     
     rmsdtest = "data_rmsds_separated_chains_-protein_or_nucleic-_all_all.csv"
     
-    with open(rmsdtest, 'r') as fh:
-        f2 = fh.readlines()
-    
-    assert f1 == f2
+    assert commons.compare_csv(rmsd_sep_noHOH, rmsdtest)
     os.remove(rmsdtest)
-    os.remove("plot_rmsds_separated_chains_-protein_or_nucleic-_all_all.pdf")
+    os.remove("plot_rmsd_chain_per_subplot_rmsds_separated_chains_-protein_or_nucleic-_all_all.pdf")
+    os.remove("plot_rmsd_individual_chains_one_subplot_rmsds_separated_chains_-protein_or_nucleic-_all_all.pdf")
         

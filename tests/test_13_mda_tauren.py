@@ -6,8 +6,8 @@ import pytest
 import numpy as np
 import json
 
-from tauren import tauren
-from tauren import load
+from tauren import load, tauren
+from tests import commons
 
 file_path = "tests"
 rf = "reference"
@@ -102,15 +102,6 @@ rmsd_sep_noHOH_Cl = os.path.join(
 
 dataindexlast = os.path.join(file_path, rf, "data_index_-1.json")
 
-
-def atom_predicate(line):
-    
-    if line.startswith("ATOM"):
-        return False
-    else:
-        return True
-
-
 traj = load.load_traj(
         trajectory,
         topology,
@@ -194,10 +185,10 @@ def test_frame2file_with_solvent_1():
     traj.frames2file(prefix="with_solvent", frames="1")
     
     with open(solvent0, 'r') as fh:
-        f1 = it.filterfalse(atom_predicate, fh.readlines())
+        f1 = it.filterfalse(commons.atom_predicate, fh.readlines())
     
     with open("with_solvent000.pdb", 'r') as fh:
-        f2 = it.filterfalse(atom_predicate, fh.readlines())
+        f2 = it.filterfalse(commons.atom_predicate, fh.readlines())
     
     assert all(x == y for x, y in zip(f1, f2))
     os.remove("with_solvent000.pdb")
@@ -208,10 +199,10 @@ def test_frame2file_with_solvent_50():
     traj.frames2file(prefix="with_solvent", frames="50")
     
     with open(solvent49, 'r') as fh:
-        f1 = it.filterfalse(atom_predicate, fh.readlines())
+        f1 = it.filterfalse(commons.atom_predicate, fh.readlines())
     
     with open("with_solvent049.pdb", 'r') as fh:
-        f2 = it.filterfalse(atom_predicate, fh.readlines())
+        f2 = it.filterfalse(commons.atom_predicate, fh.readlines())
     
     assert all(x == y for x, y in zip(f1, f2))
     os.remove("with_solvent049.pdb")
@@ -231,10 +222,10 @@ def test_frame2file_noHOH_1():
     traj.frames2file(prefix="_", frames="1")
     
     with open(noHOH0, 'r') as fh:
-        f1 = it.filterfalse(atom_predicate, fh.readlines())
+        f1 = it.filterfalse(commons.atom_predicate, fh.readlines())
     
     with open("_000.pdb", 'r') as fh:
-        f2 = it.filterfalse(atom_predicate, fh.readlines())
+        f2 = it.filterfalse(commons.atom_predicate, fh.readlines())
     
     assert all(x == y for x, y in zip(f1, f2))
     os.remove("_000.pdb")
@@ -245,10 +236,10 @@ def test_frame2file_noHOH_50():
     traj.frames2file(prefix="_", frames="50")
     
     with open(noHOH49, 'r') as fh:
-        f1 = it.filterfalse(atom_predicate, fh.readlines())
+        f1 = it.filterfalse(commons.atom_predicate, fh.readlines())
     
     with open("_049.pdb", 'r') as fh:
-        f2 = it.filterfalse(atom_predicate, fh.readlines())
+        f2 = it.filterfalse(commons.atom_predicate, fh.readlines())
     
     assert all(x == y for x, y in zip(f1, f2))
     os.remove("_049.pdb")
@@ -264,10 +255,10 @@ def test_frame2file_chainA_1():
         )
     
     with open(noHOH_chainA0, 'r') as fh:
-        f1 = it.filterfalse(atom_predicate, fh.readlines())
+        f1 = it.filterfalse(commons.atom_predicate, fh.readlines())
     
     with open("chain_A_000.pdb", 'r') as fh:
-        f2 = it.filterfalse(atom_predicate, fh.readlines())
+        f2 = it.filterfalse(commons.atom_predicate, fh.readlines())
     
     assert all(x == y for x, y in zip(f1, f2))
     os.remove("chain_A_000.pdb")
@@ -283,10 +274,10 @@ def test_frame2file_chainA_50():
         )
     
     with open(noHOH_chainA49, 'r') as fh:
-        f1 = it.filterfalse(atom_predicate, fh.readlines())
+        f1 = it.filterfalse(commons.atom_predicate, fh.readlines())
     
     with open("chain_A_049.pdb", 'r') as fh:
-        f2 = it.filterfalse(atom_predicate, fh.readlines())
+        f2 = it.filterfalse(commons.atom_predicate, fh.readlines())
     
     assert all(x == y for x, y in zip(f1, f2))
     os.remove("chain_A_049.pdb")
@@ -315,10 +306,10 @@ def test_frame2file_aligned_1():
     traj.frames2file(**d)
     
     with open(noHOH_aligned0, 'r') as fh:
-        f1 = it.filterfalse(atom_predicate, fh.readlines())
+        f1 = it.filterfalse(commons.atom_predicate, fh.readlines())
 
     with open("test_aligned_000.pdb", 'r') as fh:
-        f2 = it.filterfalse(atom_predicate, fh.readlines())
+        f2 = it.filterfalse(commons.atom_predicate, fh.readlines())
     
     assert all(x == y for x, y in zip(f1, f2))
     os.remove("test_aligned_000.pdb")
@@ -337,10 +328,10 @@ def test_frame2file_aligned_50():
     traj.frames2file(**d)
     
     with open(noHOH_aligned49, 'r') as fh:
-        f1 = it.filterfalse(atom_predicate, fh.readlines())
+        f1 = it.filterfalse(commons.atom_predicate, fh.readlines())
 
     with open("test_aligned_049.pdb", 'r') as fh:
-        f2 = it.filterfalse(atom_predicate, fh.readlines())
+        f2 = it.filterfalse(commons.atom_predicate, fh.readlines())
     
     assert all(x == y for x, y in zip(f1, f2))
     os.remove("test_aligned_049.pdb")
@@ -416,15 +407,9 @@ def test_export_data_1():
     
     traj.export_data(0)
     
-    with open(rmsd_solvent, 'r') as fh:
-        f1 = fh.readlines()
-    
     rmsdtest = "rmsds_combined_chains_all_all_all.csv"
     
-    with open(rmsdtest, 'r') as fh:
-        f2 = fh.readlines()
-    
-    assert f1 == f2
+    assert commons.compare_csv(rmsd_solvent, rmsdtest)
     os.remove(rmsdtest)
 
 
@@ -441,15 +426,9 @@ def test_export_data_2():
     
     traj.export_data(1)
     
-    with open(rmsd_noHOH, 'r') as fh:
-        f1 = fh.readlines()
-    
     rmsdtest = "rmsds_combined_chains_-protein_or_nucleic-_all_all.csv"
     
-    with open(rmsdtest, 'r') as fh:
-        f2 = fh.readlines()
-    
-    assert f1 == f2
+    assert commons.compare_csv(rmsd_noHOH, rmsdtest)
     os.remove(rmsdtest)
 
 
@@ -464,15 +443,9 @@ def test_export_data_3():
     
     traj.export_data(2)
     
-    with open(rmsd_noHOH_A, 'r') as fh:
-        f1 = fh.readlines()
-    
     rmsdtest = "rmsds_combined_chains_-protein_or_nucleic-_all_-A.csv"
     
-    with open(rmsdtest, 'r') as fh:
-        f2 = fh.readlines()
-    
-    assert f1 == f2
+    assert commons.compare_csv(rmsd_noHOH_A, rmsdtest)
     os.remove(rmsdtest)
 
 
@@ -487,15 +460,9 @@ def test_export_data_4():
     
     traj.export_data(3)
     
-    with open(rmsd_noHOH_AB, 'r') as fh:
-        f1 = fh.readlines()
-    
     rmsdtest = "rmsds_combined_chains_-protein_or_nucleic-_all_-A-B.csv"
     
-    with open(rmsdtest, 'r') as fh:
-        f2 = fh.readlines()
-    
-    assert f1 == f2
+    assert commons.compare_csv(rmsd_noHOH_AB, rmsdtest)
     os.remove(rmsdtest)
 
 
@@ -512,15 +479,9 @@ def test_export_data_5():
     
     traj.export_data(4)
     
-    with open(rmsd_sep_solvent, 'r') as fh:
-        f1 = fh.readlines()
-    
     rmsdtest = "rmsds_separated_chains_all_all_all.csv"
     
-    with open(rmsdtest, 'r') as fh:
-        f2 = fh.readlines()
-    
-    assert f1 == f2
+    assert commons.compare_csv(rmsd_sep_solvent, rmsdtest)
     os.remove(rmsdtest)
 
 
@@ -537,15 +498,9 @@ def test_export_data_6():
     
     traj.export_data(5)
     
-    with open(rmsd_sep_noHOH_Cl, 'r') as fh:
-        f1 = fh.readlines()
-    
     rmsdtest = "rmsds_separated_chains_-protein_or_nucleic_or_name_Cl-_all_all.csv"
     
-    with open(rmsdtest, 'r') as fh:
-        f2 = fh.readlines()
-    
-    assert f1 == f2
+    assert commons.compare_csv(rmsd_sep_noHOH_Cl, rmsdtest)
     os.remove(rmsdtest)
 
 
@@ -562,15 +517,9 @@ def test_export_data_7():
     
     traj.export_data(6)
     
-    with open(rmsd_sep_noHOH, 'r') as fh:
-        f1 = fh.readlines()
-    
     rmsdtest = "rmsds_separated_chains_-protein_or_nucleic-_all_all.csv"
     
-    with open(rmsdtest, 'r') as fh:
-        f2 = fh.readlines()
-    
-    assert f1 == f2
+    assert commons.compare_csv(rmsd_sep_noHOH, rmsdtest)
     os.remove(rmsdtest)
 
 
@@ -585,15 +534,9 @@ def test_export_data_8():
     
     traj.export_data(7)
     
-    with open(rmsd_sep_noHOH_A, 'r') as fh:
-        f1 = fh.readlines()
-    
     rmsdtest = "rmsds_separated_chains_-protein_or_nucleic-_all_-A.csv"
     
-    with open(rmsdtest, 'r') as fh:
-        f2 = fh.readlines()
-    
-    assert f1 == f2
+    assert commons.compare_csv(rmsd_sep_noHOH_A, rmsdtest)
     os.remove(rmsdtest)
 
 def test_gen_export_file_name_1():
