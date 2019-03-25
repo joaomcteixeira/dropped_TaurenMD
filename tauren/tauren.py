@@ -209,13 +209,17 @@ class TaurenTraj(ABC):
             The string the defines the selector.
         """
         
-        if not isinstance(selector, str):
+        if selector is None or selector == "all":
+            self._atom_selection = "all"
+        
+        elif not isinstance(selector, str):
             raise TypeError(
                 "*selector* must be STRING type."
                 f" '{type(selector)}' given."
                 )
         
-        self._atom_selection = selector
+        else:
+            self._atom_selection = f"({selector})"
     
     @property
     @abstractmethod
@@ -473,7 +477,7 @@ class TaurenTraj(ABC):
         
         Parameters
         ----------
-        selector : str
+        selector : :obj:`str`.
             The selection string.
             If None type provided assumes ``"all"``.
             Should be of a valid format according to the
@@ -496,7 +500,7 @@ class TaurenTraj(ABC):
             self.atom_selection = "all"
         
         else:
-            self.atom_selection = f"({selector})"
+            self.atom_selection = selector
         
         log.info(f"    atom selection set to {self.atom_selection}")
         

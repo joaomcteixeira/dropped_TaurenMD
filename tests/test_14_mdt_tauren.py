@@ -49,45 +49,52 @@ rmsd_solvent = os.path.join(
     file_path,
     rf,
     mdtype,
-    "rmsds_combined_chains_all_-all-_all.csv"
+    "rmsds_combined_chains_all_all_all.csv"
     )
 
 rmsd_noHOH = os.path.join(
     file_path,
     rf,
     mdtype,
-    "rmsds_combined_chains_noHOH_-all-_all.csv"
+    "rmsds_combined_chains_noSolvent_all_all.csv"
     )
 
 rmsd_noHOH_A = os.path.join(
     file_path,
     rf,
     mdtype,
-    "rmsds_combined_chains_noHOH_-all-_0.csv"
+    "rmsds_combined_chains_noSolvent_all_-0.csv"
     )
 
 rmsd_sep_solvent = os.path.join(
     file_path,
     rf,
     mdtype,
-    "rmsds_separated_chains_all_-all-_all.csv"
+    "rmsds_separated_chains_all_all_all.csv"
     )
 
 rmsd_sep_noHOH = os.path.join(
     file_path,
     rf,
     mdtype,
-    "rmsds_separated_chains_noHOH_-all-_all.csv"
+    "rmsds_separated_chains_noSolvent_all_all.csv"
+    )
+
+rmsd_sep_noHOH_Cl = os.path.join(
+    file_path,
+    rf,
+    mdtype,
+    "rmsds_separated_chains_-noSolvent-exc-CL-_all_all.csv"
     )
 
 rmsd_sep_noHOH_A = os.path.join(
     file_path,
     rf,
     mdtype,
-    "rmsds_separated_chains_noHOH_-all-_0.csv"
+    "rmsds_separated_chains_noSolvent_all_-0.csv"
     )
 
-dataindex6 = os.path.join(file_path, rf, "data_index_6.json")
+dataindexlast = os.path.join(file_path, rf, "data_index_-1.json")
 
 
 def atom_predicate(line):
@@ -301,7 +308,7 @@ def test_set_atom_selection_reset():
     
     traj.set_atom_selection(selector=None)
     
-    assert traj.atom_selection == "(all)"
+    assert traj.atom_selection == "all"
 
 
 def test_frame2file_aligned_1():
@@ -346,6 +353,7 @@ def test_cross_data_2():
     a0 = np.loadtxt(rmsd_sep_solvent, delimiter=",")
     a1 = np.loadtxt(rmsd_sep_noHOH, delimiter=",")
     a2 = np.loadtxt(rmsd_sep_noHOH_A, delimiter=",")
+    a3 = np.loadtxt(rmsd_sep_noHOH_Cl, delimiter=",")
     
     assert np.array_equal(a0[:, 0], a1[:, 0])
     assert np.array_equal(a0[:, 0], a2[:, 0])
@@ -356,7 +364,10 @@ def test_cross_data_2():
     assert np.array_equal(a0[:, 2], a1[:, 2])
     assert np.array_equal(a0[:, 3], a1[:, 3])
     
+    assert not(np.array_equal(a0[:, 4], a3[:, 4]))
+    
     assert a0.shape[1] > a1.shape[1] > a2.shape[1]
+    assert a0.shape == a3.shape
 
 
 def test_cross_data_3():
@@ -381,7 +392,7 @@ def test_export_data_1():
     with open(rmsd_solvent, 'r') as fh:
         f1 = fh.readlines()
     
-    rmsdtest = "rmsds_combined_chains_all_-all-_all.csv"
+    rmsdtest = "rmsds_combined_chains_all_all_all.csv"
     
     with open(rmsdtest, 'r') as fh:
         f2 = fh.readlines()
@@ -406,7 +417,7 @@ def test_export_data_2():
     with open(rmsd_noHOH, 'r') as fh:
         f1 = fh.readlines()
     
-    rmsdtest = "rmsds_combined_chains_noHOH_-all-_all.csv"
+    rmsdtest = "rmsds_combined_chains_noSolvent_all_all.csv"
     
     with open(rmsdtest, 'r') as fh:
         f2 = fh.readlines()
@@ -429,7 +440,7 @@ def test_export_data_3():
     with open(rmsd_noHOH_A, 'r') as fh:
         f1 = fh.readlines()
     
-    rmsdtest = "rmsds_combined_chains_noHOH_-all-_0.csv"
+    rmsdtest = "rmsds_combined_chains_noSolvent_all_-0.csv"
     
     with open(rmsdtest, 'r') as fh:
         f2 = fh.readlines()
@@ -454,7 +465,7 @@ def test_export_data_4():
     with open(rmsd_sep_solvent, 'r') as fh:
         f1 = fh.readlines()
     
-    rmsdtest = "rmsds_separated_chains_all_-all-_all.csv"
+    rmsdtest = "rmsds_separated_chains_all_all_all.csv"
     
     with open(rmsdtest, 'r') as fh:
         f2 = fh.readlines()
@@ -465,7 +476,7 @@ def test_export_data_4():
 
 def test_rmsds_separated_2():
     
-    traj.remove_solvent()
+    traj.remove_solvent(exclude=["CL"])
     
     key = traj.calc_rmsds_separated_chains()
     
@@ -476,10 +487,10 @@ def test_export_data_5():
     
     traj.export_data(4)
     
-    with open(rmsd_sep_noHOH, 'r') as fh:
+    with open(rmsd_sep_noHOH_Cl, 'r') as fh:
         f1 = fh.readlines()
     
-    rmsdtest = "rmsds_separated_chains_noHOH_-all-_all.csv"
+    rmsdtest = "rmsds_separated_chains_-noSolvent-exc-CL-_all_all.csv"
     
     with open(rmsdtest, 'r') as fh:
         f2 = fh.readlines()
@@ -490,7 +501,9 @@ def test_export_data_5():
 
 def test_rmsds_separated_3():
     
-    key = traj.calc_rmsds_separated_chains(chains="0")
+    traj.remove_solvent()
+    
+    key = traj.calc_rmsds_separated_chains()
     
     assert len(traj.observables) == 6
 
@@ -499,10 +512,33 @@ def test_export_data_6():
     
     traj.export_data(5)
     
+    with open(rmsd_sep_noHOH, 'r') as fh:
+        f1 = fh.readlines()
+    
+    rmsdtest = "rmsds_separated_chains_noSolvent_all_all.csv"
+    
+    with open(rmsdtest, 'r') as fh:
+        f2 = fh.readlines()
+    
+    assert f1 == f2
+    os.remove(rmsdtest)
+
+
+def test_rmsds_separated_4():
+    
+    key = traj.calc_rmsds_separated_chains(chains="0")
+    
+    assert len(traj.observables) == 7
+
+
+def test_export_data_7():
+    
+    traj.export_data(6)
+    
     with open(rmsd_sep_noHOH_A, 'r') as fh:
         f1 = fh.readlines()
     
-    rmsdtest = "rmsds_separated_chains_noHOH_-all-_0.csv"
+    rmsdtest = "rmsds_separated_chains_noSolvent_all_-0.csv"
     
     with open(rmsdtest, 'r') as fh:
         f2 = fh.readlines()
@@ -524,7 +560,7 @@ def test_gen_export_file_name_1():
         suffix=suffix,
         )
 
-    assert name == "rmsds_combined_chains_all_-all-_all.csv"
+    assert name == "rmsds_combined_chains_all_all_all.csv"
 
 
 def test_gen_export_file_name_2():
@@ -541,7 +577,7 @@ def test_gen_export_file_name_2():
         suffix=suffix,
         )
     
-    assert name == "yeahh_rmsds_combined_chains_all_-all-_all.csv"
+    assert name == "yeahh_rmsds_combined_chains_all_all_all.csv"
 
 
 def test_gen_export_file_name_3():
@@ -558,7 +594,7 @@ def test_gen_export_file_name_3():
         suffix=suffix,
         )
     
-    assert name == "yeahh_rmsds_combined_chains_all_-all-_all.txt"
+    assert name == "yeahh_rmsds_combined_chains_all_all_all.txt"
 
 
 def test_gen_export_file_name_4():
@@ -587,7 +623,7 @@ def test_export_json_1():
         )
     
     traj.export_data(
-        6,
+        -1,
         tojson=True,
         suffix="json",
         header="""
@@ -598,11 +634,11 @@ def test_export_json_1():
         """,
         )
     
-    with open("data_index_6.json", 'r') as fh:
-        ind6 = json.load(fh)
+    with open("data_index_-1.json", 'r') as fh:
+        indlast = json.load(fh)
     
-    with open(dataindex6, 'r') as fh:
-        refjson6 = json.load(fh)
+    with open(dataindexlast, 'r') as fh:
+        refindlast = json.load(fh)
     
-    assert ind6 == refjson6
-    os.remove("data_index_6.json")
+    assert indlast == refindlast
+    os.remove("data_index_-1.json")
