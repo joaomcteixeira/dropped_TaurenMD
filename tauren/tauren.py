@@ -1355,8 +1355,23 @@ class TaurenMDAnalysis(TaurenTraj):
         return len(self.universe.atoms)
     
     @core.log_args
-    def _remove_solvent(self, **kwargs):
-        self._solvent_selector = "(protein or nucleic)"
+    def _remove_solvent(self, exclude=None, **kwargs):
+        
+        if isinstance(exclude, list):
+            self._solvent_selector = (
+                "(protein or nucleic or "
+                f"{'name ' + 'name or'.join(exclude)})"
+                )
+        
+        elif exclude is None:
+            self._solvent_selector = "(protein or nucleic)"
+        
+        else:
+            raise TypeError(
+                "*exclude* must be LIST type,"
+                f" '{type(exclude)} given."
+                )
+            
         log.info("    solvent removed")
         return
     
