@@ -2,7 +2,7 @@
 # atom_selection: all
 # identifier: all
 # ref_frame: 0
-# columns: ['frames', 0, 1, 2]
+# columns: ['frames', '0,1,2']
 # name: rmsds_combined_chains_noSolvent_all_all
 # frames,0,1,2
 1.00000,0.00000
