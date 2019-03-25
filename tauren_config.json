@@ -48,7 +48,7 @@
             "export_data": {
                 "file_name": null,
                 "sep": ",",
-                "suffix": "csv",
+                "extension": "csv",
                 "tojson": false
                 },
             
