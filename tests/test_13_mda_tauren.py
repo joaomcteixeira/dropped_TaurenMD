@@ -351,48 +351,58 @@ def test_undo_rmv_solvent_1():
     assert traj.atom_selection == "all and all"
 
 
-# def test_cross_data_1():
+def test_cross_data_1():
     
-    # a0 = np.loadtxt(rmsd_solvent, delimiter=",")
-    # a1 = np.loadtxt(rmsd_noHOH, delimiter=",")
-    # a2 = np.loadtxt(rmsd_noHOH_A, delimiter=",")
+    a0 = np.loadtxt(rmsd_solvent, delimiter=",")
+    a1 = np.loadtxt(rmsd_noHOH, delimiter=",")
+    a2 = np.loadtxt(rmsd_noHOH_A, delimiter=",")
+    a3 = np.loadtxt(rmsd_noHOH_AB, delimiter=",")
     
-    # assert np.array_equal(a0[:, 0], a1[:, 0])
-    # assert np.array_equal(a0[:, 0], a2[:, 0])
+    # test frame number
+    assert np.array_equal(a0[:, 0], a1[:, 0])
+    assert np.array_equal(a0[:, 0], a2[:, 0])
+    assert np.array_equal(a0[:, 0], a3[:, 0])
     
-    # assert not(np.array_equal(a0[:, 1], a1[:, 1]))
-    # assert not(np.array_equal(a0[:, 1], a2[:, 1]))
-    # assert not(np.array_equal(a1[:, 1], a2[:, 1]))
+    assert not(np.array_equal(a0[:, 1], a1[:, 1]))
+    assert not(np.array_equal(a0[:, 1], a2[:, 1]))
+    assert not(np.array_equal(a1[:, 1], a2[:, 1]))
+    assert not(np.array_equal(a2[:, 1], a3[:, 1]))
+    assert not(np.array_equal(a1[:, 1], a3[:, 1]))
+    assert not(np.array_equal(a0[:, 1], a3[:, 1]))
 
 
-# def test_cross_data_2():
+def test_cross_data_2():
     
-    # a0 = np.loadtxt(rmsd_sep_solvent, delimiter=",")
-    # a1 = np.loadtxt(rmsd_sep_noHOH, delimiter=",")
-    # a2 = np.loadtxt(rmsd_sep_noHOH_A, delimiter=",")
-    # a3 = np.loadtxt(rmsd_sep_noHOH_Cl, delimiter=",")
+    a0 = np.loadtxt(rmsd_sep_solvent, delimiter=",")
+    a1 = np.loadtxt(rmsd_sep_noHOH, delimiter=",")
+    a2 = np.loadtxt(rmsd_sep_noHOH_A, delimiter=",")
+    a3 = np.loadtxt(rmsd_sep_noHOH_Cl, delimiter=",")
     
-    # assert np.array_equal(a0[:, 0], a1[:, 0])
-    # assert np.array_equal(a0[:, 0], a2[:, 0])
+    # frames
+    assert np.array_equal(a0[:, 0], a1[:, 0])
+    assert np.array_equal(a0[:, 0], a2[:, 0])
     
-    # assert np.array_equal(a0[:, 1], a1[:, 1])
-    # assert np.array_equal(a0[:, 1], a2[:, 1])
+    # chain A
+    assert np.array_equal(a0[:, 1], a1[:, 1])
+    assert np.array_equal(a0[:, 1], a2[:, 1])
     
-    # assert np.array_equal(a0[:, 2], a1[:, 2])
-    # assert np.array_equal(a0[:, 3], a1[:, 3])
+    # chains B, C
+    assert np.array_equal(a0[:, 2], a1[:, 2])
+    assert np.array_equal(a0[:, 3], a1[:, 3])
     
-    # assert not(np.array_equal(a0[:, 4], a3[:, 4]))
+    # Na,Cl vs only Cl
+    assert not(np.array_equal(a0[:, 4], a3[:, 4]))
     
-    # assert a0.shape[1] > a1.shape[1] > a2.shape[1]
-    # assert a0.shape == a3.shape
+    assert a0.shape[1] > a1.shape[1] > a2.shape[1]
+    assert a0.shape == a3.shape
 
 
-# def test_cross_data_3():
+def test_cross_data_3():
     
-    # a0 = np.loadtxt(rmsd_noHOH_A, delimiter=",")
-    # a1 = np.loadtxt(rmsd_sep_noHOH_A, delimiter=",")
+    a0 = np.loadtxt(rmsd_noHOH_A, delimiter=",")
+    a1 = np.loadtxt(rmsd_sep_noHOH_A, delimiter=",")
     
-    # assert np.array_equal(a0[:, 1], a1[:, 1])
+    assert np.array_equal(a0[:, 1], a1[:, 1])
 
 
 def test_rmsds_combined_1():
@@ -651,7 +661,24 @@ def test_gen_export_file_name_4():
         suffix=suffix,
         )
     
-    assert name == "superfile.txt"
+    assert name == "superfile"
+
+
+def test_gen_export_file_name_5():
+    
+    index = 0
+    file_name = "superfile.csv"
+    prefix = "yeahh"
+    suffix = "txt"
+    
+    name = traj._gen_export_file_name(
+        index,
+        file_name=file_name,
+        prefix=prefix,
+        suffix=suffix,
+        )
+    
+    assert name == "superfile.csv"
 
 
 def test_export_json_1():

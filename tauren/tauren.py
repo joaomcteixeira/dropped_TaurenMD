@@ -60,6 +60,7 @@ class TaurenTraj(ABC):
         
         self.observables = None
         self._rmsds_counter = 0
+        self._atom_selection = "all"
         
         return
     
@@ -192,11 +193,7 @@ class TaurenTraj(ABC):
         
         If not defined assumes "all".
         """
-        try:
-            return self._atom_selection
-        
-        except AttributeError:
-            return "(all)"
+        return self._atom_selection
     
     @atom_selection.setter
     def atom_selection(self, selector):
@@ -841,7 +838,7 @@ class TaurenTraj(ABC):
             "atom_selection": self._atom_selection,
             "identifier": chains,
             "ref_frame": ref_frame,
-            "columns": ["frames"] + column_headers,
+            "columns": ["frames", ",".join([str(x) for x in column_headers])],
             "name": (
                 f"{storage_key}"
                 f"_{self._solvent_selector}"
@@ -1224,7 +1221,7 @@ class TaurenTraj(ABC):
         filename = (
             f"{'' if file_name else (prefix or '')}"
             f"{next((x for x in tablename if x), f'data_index_{index}')}"
-            f".{suffix or 'csv'}"
+            f"{('.' + (suffix or 'csv')) if not file_name else ''}"
             )
         
         return filename
@@ -1338,13 +1335,7 @@ class TaurenMDAnalysis(TaurenTraj):
     
     @TaurenTraj.atom_selection.getter
     def atom_selection(self):
-        try:
-            atmsel = self._atom_selection
-        
-        except AttributeError:
-            atmsel = "all"
-        
-        return f"{self._solvent_selector} and {atmsel}"
+        return f"{self._solvent_selector} and {self._atom_selection}"
     
     @TaurenTraj.n_residues.getter
     def n_residues(self):
@@ -1534,6 +1525,8 @@ class TaurenMDAnalysis(TaurenTraj):
                 f"{self.atom_selection}"
                 f" and ({chain_selector})"
                 )
+            
+            log.debug(f"*final selection* {final_selection}")
             
             atoms = self.universe.select_atoms(final_selection)
             

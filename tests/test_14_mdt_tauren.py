@@ -182,7 +182,7 @@ def test_solvent_selector_default():
 
 
 def test_default_atom_selection():
-    assert traj.atom_selection == "(all)"
+    assert traj.atom_selection == "all"
 
 
 def test_frame2file_with_solvent_1():
@@ -221,7 +221,7 @@ def test_remove_solvent_selector():
 
 
 def test_remove_solvent_atom_selection():
-    assert traj.atom_selection == "(all)"
+    assert traj.atom_selection == "all"
 
 def test_frame2file_noHOH_1():
     
@@ -611,7 +611,24 @@ def test_gen_export_file_name_4():
         suffix=suffix,
         )
     
-    assert name == "superfile.txt"
+    assert name == "superfile"
+
+
+def test_gen_export_file_name_5():
+    
+    index = 0
+    file_name = "superfile.csv"
+    prefix = "yeahh"
+    suffix = "txt"
+    
+    name = traj._gen_export_file_name(
+        index,
+        file_name=file_name,
+        prefix=prefix,
+        suffix=suffix,
+        )
+    
+    assert name == "superfile.csv"
 
 
 def test_export_json_1():

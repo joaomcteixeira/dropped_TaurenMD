@@ -37,6 +37,13 @@ def test_rmv_solvent_1():
     assert traj.atom_selection == "(protein or nucleic) and all"
 
 
+def test_rmv_solvent_2():
+    
+    traj.remove_solvent(exclude=["Cl"])
+    
+    assert traj.atom_selection == "(protein or nucleic or name Cl) and all"
+
+
 def test_undo_rmv_solvent_1():
     
     traj.undo_rmv_solvent()
