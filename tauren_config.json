@@ -47,7 +47,9 @@
             
             "export_data": {
                 "file_name": null,
-                "sep": ","
+                "sep": ",",
+                "suffix": "csv",
+                "tojson": false
                 },
             
             "plot_rmsd_combined_chains": {
@@ -78,7 +80,9 @@
             
             "export_data": {
                 "file_name": null,
-                "sep": ","
+                "sep": ",",
+                "suffix": "csv",
+                "tojson": false
                 },
             
             "plot_rmsd_chain_per_subplot": {

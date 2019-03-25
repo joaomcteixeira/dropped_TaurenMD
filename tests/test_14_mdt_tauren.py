@@ -551,16 +551,16 @@ def test_gen_export_file_name_1():
     index = 0
     file_name = None
     prefix = None
-    suffix = None
+    extension = None
     
     name = traj._gen_export_file_name(
         index,
         file_name=file_name,
         prefix=prefix,
-        suffix=suffix,
+        extension=extension,
         )
 
-    assert name == "rmsds_combined_chains_all_all_all.csv"
+    assert name == "rmsds_combined_chains_all_all_all"
 
 
 def test_gen_export_file_name_2():
@@ -568,16 +568,16 @@ def test_gen_export_file_name_2():
     index = 0
     file_name = None
     prefix = "yeahh"
-    suffix = None
+    extension = None
     
     name = traj._gen_export_file_name(
         index,
         file_name=file_name,
         prefix=prefix,
-        suffix=suffix,
+        extension=extension,
         )
     
-    assert name == "yeahh_rmsds_combined_chains_all_all_all.csv"
+    assert name == "yeahh_rmsds_combined_chains_all_all_all"
 
 
 def test_gen_export_file_name_3():
@@ -585,13 +585,13 @@ def test_gen_export_file_name_3():
     index = 0
     file_name = None
     prefix = "yeahh"
-    suffix = "txt"
+    extension = "txt"
     
     name = traj._gen_export_file_name(
         index,
         file_name=file_name,
         prefix=prefix,
-        suffix=suffix,
+        extension=extension,
         )
     
     assert name == "yeahh_rmsds_combined_chains_all_all_all.txt"
@@ -602,16 +602,16 @@ def test_gen_export_file_name_4():
     index = 0
     file_name = "superfile"
     prefix = "yeahh"
-    suffix = "txt"
+    extension = "txt"
     
     name = traj._gen_export_file_name(
         index,
         file_name=file_name,
         prefix=prefix,
-        suffix=suffix,
+        extension=extension,
         )
     
-    assert name == "superfile"
+    assert name == "superfile.txt"
 
 
 def test_gen_export_file_name_5():
@@ -619,13 +619,13 @@ def test_gen_export_file_name_5():
     index = 0
     file_name = "superfile.csv"
     prefix = "yeahh"
-    suffix = "txt"
+    extension = "txt"
     
     name = traj._gen_export_file_name(
         index,
         file_name=file_name,
         prefix=prefix,
-        suffix=suffix,
+        extension=extension,
         )
     
     assert name == "superfile.csv"
@@ -642,7 +642,7 @@ def test_export_json_1():
     traj.export_data(
         -1,
         tojson=True,
-        suffix="json",
+        extension="json",
         header="""
         Super header:
         I am not free for doing what I want,

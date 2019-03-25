@@ -1104,7 +1104,7 @@ class TaurenTraj(ABC):
             self,
             index,
             prefix='',
-            suffix="csv",
+            extension="csv",
             file_name=None,
             sep=",",
             header="",
@@ -1169,7 +1169,7 @@ class TaurenTraj(ABC):
             index,
             file_name=file_name,
             prefix=prefix,
-            suffix=suffix,
+            extension=extension,
             )
         
         log.info(f"* Exporting {filename}")
@@ -1203,7 +1203,7 @@ class TaurenTraj(ABC):
             *,
             file_name=None,
             prefix=None,
-            suffix='csv',
+            extension='csv',
             ):
         """
         Generates a filename based on the data information.
@@ -1218,10 +1218,28 @@ class TaurenTraj(ABC):
         if prefix:
             prefix += "_"
         
+        filename = next((x for x in tablename if x), f'data_index_{index}')
+        
+        fsplit = filename.split(".")
+        if len(fsplit) == 2 and all(part for part in fsplit) \
+                or extension is None:
+            extension =""
+        
+        else:
+            try:
+                extension = "." + extension
+            
+            except TypeError:
+                log.info(
+                    "*extension* must be STRING"
+                    f" '{type(extension)}' given."
+                    )
+                raise
+            
         filename = (
             f"{'' if file_name else (prefix or '')}"
-            f"{next((x for x in tablename if x), f'data_index_{index}')}"
-            f"{('.' + (suffix or 'csv')) if not file_name else ''}"
+            f"{filename}"
+            f"{extension}"
             )
         
         return filename
