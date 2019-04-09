@@ -7,30 +7,11 @@
     "traj_type": "mdtraj",
     
     "actions": {
-        "remove_solvent": {
-            "exclude":null
-            },
-        
+    
         "frames2file": {
-            "frames": "50:55",
+            "frames": "1",
             "prefix": "_",
             "ext": "pdb"
-            },
-        
-        "frame_slice": {
-            "start": 100,
-            "end": null,
-            "step":10
-            },
-        
-        "save_traj": {
-            "file_name": "traj_OUTPUT.dcd"
-            },
-        
-        "frame_slice_": {
-            "start": null,
-            "end": null,
-            "step":10
             },
         
         "produce_rmsds_combined_chains": {
@@ -41,7 +22,7 @@
                 },
             
             "export_data": {
-                "file_name": null,
+                "file_name": "combined_1",
                 "sep": ","
                 },
             
@@ -60,38 +41,8 @@
                 "legend": true,
                 "legend_fs": 6,
                 "legend_loc": 4,
-                "fig_name": null
-                }
-            },
-        
-        "produce_rmsds_combined_chains": {
-            
-            "calc_rmsds_combined_chains": {
-                "chains": "0,1,2",
-                "ref_frame": 0
-                },
-            
-            "export_data": {
-                "file_name": null,
-                "sep": ","
-                },
-            
-            "plot_rmsd_combined_chains": {
-                "label": null,
-                "suptitle": "Combined Chain RMSDs",
-                "x_label": "Frame Number",
-                "y_label": "RMSDs",
-                "color": "blue",
-                "alpha": 0.7,
-                "grid": true,
-                "grid_color": "green",
-                "grid_ls": "-",
-                "grid_lw": 1,
-                "grid_alpha": 0.5,
-                "legend": true,
-                "legend_fs": 6,
-                "legend_loc": 4,
-                "fig_name": null
+                "fig_name": "plot_combined_1",
+                "extension": "png"
                 }
             },
         
@@ -103,8 +54,9 @@
                 },
             
             "export_data": {
-                "file_name": null,
-                "sep": ","
+                "file_name": "separated_1",
+                "sep": ",",
+                "tojson": true
                 },
             
             "plot_rmsd_chain_per_subplot": {
@@ -122,7 +74,8 @@
                 "legend": true,
                 "legend_fs": 6,
                 "legend_loc": 4,
-                "fig_name": null
+                "fig_name": "chain_per_subplot_separated_1",
+                "extension": "png"
                 },
             
             "plot_rmsd_individual_chains_one_subplot": {
@@ -140,9 +93,270 @@
                 "legend": true,
                 "legend_fs": 6,
                 "legend_loc": 4,
-                "fig_name": null
+                "fig_name": "chains_one_subplot_separated_1",
+                "extension": "png"
                 }
+            },
         
+        "remove_solvent": {
+            "exclude":null
+            },
+        
+        "frames2file_": {
+            "frames": "2",
+            "prefix": "_",
+            "ext": "pdb"
+            },
+        
+        "save_traj": {
+            "file_name": "traj_OUTPUT_noSolvent.dcd"
+            },
+        
+        "frame_slice": {
+            "start": null,
+            "end": null,
+            "step":10
+            },
+        
+        "produce_rmsds_combined_chains_": {
+            
+            "calc_rmsds_combined_chains": {
+                "chains": "all",
+                "ref_frame": 0
+                },
+            
+            "export_data": {
+                "file_name": "combined_2",
+                "sep": ","
+                },
+            
+            "plot_rmsd_combined_chains": {
+                "label": null,
+                "suptitle": "Combined Chain RMSDs",
+                "x_label": "Frame Number",
+                "y_label": "RMSDs",
+                "color": "blue",
+                "alpha": 0.7,
+                "grid": true,
+                "grid_color": "lightgrey",
+                "grid_ls": "-",
+                "grid_lw": 1,
+                "grid_alpha": 0.5,
+                "legend": true,
+                "legend_fs": 6,
+                "legend_loc": 4,
+                "fig_name": "plot_combined_2",
+                "extension": "png"
+                }
+            },
+        
+        "produce_rmsds_separated_chains_": {
+            
+            "calc_rmsds_separated_chains" : {
+                "chains": "all",
+                "ref_frame": 0
+                },
+            
+            "export_data": {
+                "file_name": "separated_2",
+                "sep": ",",
+                "tojson": true
+                },
+            
+            "plot_rmsd_chain_per_subplot": {
+                "labels": null,
+                "suptitle": "RMSDs per chain",
+                "x_label": "Frame Number",
+                "y_label": "RMSDs",
+                "colors": null,
+                "alpha": 0.7,
+                "grid": true,
+                "grid_color": "lightgrey",
+                "grid_ls": "-",
+                "grid_lw": 1,
+                "grid_alpha": 0.5,
+                "legend": true,
+                "legend_fs": 6,
+                "legend_loc": 4,
+                "fig_name": "chain_per_subplot_separated_2",
+                "extension": "png"
+                },
+            
+            "plot_rmsd_individual_chains_one_subplot": {
+                "labels": null,
+                "suptitle": "Chains' RMSDs",
+                "x_label": "Frame Number",
+                "y_label": "RMSDs",
+                "colors": null,
+                "alpha": 0.7,
+                "grid": true,
+                "grid_color": "lightgrey",
+                "grid_ls": "-",
+                "grid_lw": 1,
+                "grid_alpha": 0.5,
+                "legend": true,
+                "legend_fs": 6,
+                "legend_loc": 4,
+                "fig_name": "chains_one_subplot_separated_2",
+                "extension": "png"
+                }
+            },
+        
+        "undo_rmv_solvent": {},
+        
+        "frames2file__": {
+            "frames": "3",
+            "prefix": "_",
+            "ext": "pdb"
+            },
+        
+        "frame_slice_": {
+            "start": null,
+            "end": null,
+            "step":null
+            },
+        
+        "produce_rmsds_combined_chains__": {
+            
+            "calc_rmsds_combined_chains": {
+                "chains": "all",
+                "ref_frame": 0
+                },
+            
+            "export_data": {
+                "file_name": "combined_3",
+                "sep": ","
+                },
+            
+            "plot_rmsd_combined_chains": {
+                "label": null,
+                "suptitle": "Combined Chain RMSDs",
+                "x_label": "Frame Number",
+                "y_label": "RMSDs",
+                "color": "blue",
+                "alpha": 0.7,
+                "grid": true,
+                "grid_color": "lightgrey",
+                "grid_ls": "-",
+                "grid_lw": 1,
+                "grid_alpha": 0.5,
+                "legend": true,
+                "legend_fs": 6,
+                "legend_loc": 4,
+                "fig_name": "plot_combined_3",
+                "extension": "png"
+                }
+            },
+        
+        "produce_rmsds_separated_chains__": {
+            
+            "calc_rmsds_separated_chains" : {
+                "chains": "all",
+                "ref_frame": 0
+                },
+            
+            "export_data": {
+                "file_name": "separated_3",
+                "sep": ",",
+                "tojson": true
+                },
+            
+            "plot_rmsd_chain_per_subplot": {
+                "labels": null,
+                "suptitle": "RMSDs per chain",
+                "x_label": "Frame Number",
+                "y_label": "RMSDs",
+                "colors": null,
+                "alpha": 0.7,
+                "grid": true,
+                "grid_color": "lightgrey",
+                "grid_ls": "-",
+                "grid_lw": 1,
+                "grid_alpha": 0.5,
+                "legend": true,
+                "legend_fs": 6,
+                "legend_loc": 4,
+                "fig_name": "chain_per_subplot_separated_3",
+                "extension": "png"
+                },
+            
+            "plot_rmsd_individual_chains_one_subplot": {
+                "labels": null,
+                "suptitle": "Chains' RMSDs",
+                "x_label": "Frame Number",
+                "y_label": "RMSDs",
+                "colors": null,
+                "alpha": 0.7,
+                "grid": true,
+                "grid_color": "lightgrey",
+                "grid_ls": "-",
+                "grid_lw": 1,
+                "grid_alpha": 0.5,
+                "legend": true,
+                "legend_fs": 6,
+                "legend_loc": 4,
+                "fig_name": "chains_one_subplot_separated_3",
+                "extension": "png"
+                }
+            },
+            
+        "remove_solvent_": {
+            },
+        
+        "atom_selection": {
+            "selector": "resid 50"
+            },
+        
+        "produce_rmsds_separated_chains___": {
+        
+            "calc_rmsds_separated_chains" : {
+                "chains": "all",
+                "ref_frame": 0
+                },
+            
+            "export_data": {
+                "file_name": "separated_3",
+                "sep": ",",
+                "tojson": true
+                },
+            
+            "plot_rmsd_chain_per_subplot": {
+                "labels": null,
+                "suptitle": "RMSDs per chain",
+                "x_label": "Frame Number",
+                "y_label": "RMSDs",
+                "colors": null,
+                "alpha": 0.7,
+                "grid": true,
+                "grid_color": "lightgrey",
+                "grid_ls": "-",
+                "grid_lw": 1,
+                "grid_alpha": 0.5,
+                "legend": true,
+                "legend_fs": 6,
+                "legend_loc": 4,
+                "fig_name": "chain_per_subplot_separated_3",
+                "extension": "png"
+                },
+            
+            "plot_rmsd_individual_chains_one_subplot": {
+                "labels": null,
+                "suptitle": "Chains' RMSDs",
+                "x_label": "Frame Number",
+                "y_label": "RMSDs",
+                "colors": null,
+                "alpha": 0.7,
+                "grid": true,
+                "grid_color": "lightgrey",
+                "grid_ls": "-",
+                "grid_lw": 1,
+                "grid_alpha": 0.5,
+                "legend": true,
+                "legend_fs": 6,
+                "legend_loc": 4,
+                "fig_name": "chains_one_subplot_separated_3",
+                "extension": "png"
+                }
+            }
         }
     }
-}
