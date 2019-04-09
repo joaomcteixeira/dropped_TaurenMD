@@ -635,7 +635,6 @@ def test_export_json_1():
     traj.export_data(
         -1,
         tojson=True,
-        extension="json",
         header="""
         Super header:
         I am not free for doing what I want,
