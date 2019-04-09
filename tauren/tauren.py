@@ -329,7 +329,7 @@ class TaurenTraj(ABC):
     def _remove_solvent(self):
         pass
     
-    def undo_rmv_solvent(self):
+    def undo_rmv_solvent(self, **kwargs):
         """
         Undo a previous action of solvent removal by activating
         solvent again.
@@ -1130,7 +1130,7 @@ class TaurenTraj(ABC):
             Defaults to empty string.
             If *file_name* is given, prefix and key naming are not considered.
         
-        suffix : :obj:`str`, optional
+        extension : :obj:`str`, optional
             The file extention.
             Defaults to 'csv'.
             
@@ -1140,7 +1140,7 @@ class TaurenTraj(ABC):
         
         tojson : :obj:`bool`
             If ``True`` exports data dictionary to a JSON file.
-            If ``False`` exports according to data type.
+            If ``False`` exports data according to data type.
             Defaults to ``False``.
         
         sep : :obj:`str`, optional
@@ -1164,6 +1164,9 @@ class TaurenTraj(ABC):
             log.info(f"*index* '{index}' does not exist in *observables*.")
             log.info("Ignoring...")
             return
+        
+        if tojson:
+            extension = "json"
         
         filename = self._gen_export_file_name(
             index,

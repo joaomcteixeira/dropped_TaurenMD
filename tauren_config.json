@@ -67,7 +67,8 @@
                 "legend": true,
                 "legend_fs": 6,
                 "legend_loc": 4,
-                "fig_name": null
+                "fig_name": null,
+                "extension": "pdf"
                 }
             },
         
@@ -100,7 +101,8 @@
                 "legend": true,
                 "legend_fs": 6,
                 "legend_loc": 4,
-                "fig_name": null
+                "fig_name": null,
+                "extension": "pdf"
                 },
             
             "plot_rmsd_individual_chains_one_subplot": {
@@ -118,7 +120,8 @@
                 "legend": true,
                 "legend_fs": 6,
                 "legend_loc": 4,
-                "fig_name": null
+                "fig_name": null,
+                "extension": "pdf"
                 }
             }
         }
