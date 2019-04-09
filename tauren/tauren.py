@@ -1712,10 +1712,9 @@ class TaurenMDTraj(TaurenTraj):
         
         else:
             self._solvent_selector = "noSolvent"
-            
-        log.info(f"    solventless trajectory: {self.trajectory}")
         
         self.original_traj = new_traj
+        log.info(f"    solventless trajectory: {self.trajectory}")
         return
     
     def _undo_rmv_solvent(self):
