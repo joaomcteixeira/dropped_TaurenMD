@@ -1856,7 +1856,10 @@ class TaurenMDTraj(TaurenTraj):
         Returns a sliced_traj.
         """
         
-        slicer = self.original_traj.topology.select(selector)
+        slicer = self.original_traj.topology.select("chainid 0 and resid 50")
+        
+        print(slicer.shape)
+        input("here")
         
         try:
             sliced_traj = self.trajectory.atom_slice(slicer, inplace=False)
@@ -1870,6 +1873,10 @@ class TaurenMDTraj(TaurenTraj):
                 "* Aborting calculation *"
                 )
             sys.exit(1)
+        
+        except Exception as e:
+            log.debug(e)
+            sys.exit(e)
         
         return sliced_traj
     
