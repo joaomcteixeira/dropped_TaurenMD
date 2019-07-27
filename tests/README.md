@@ -1,1 +1,0 @@
-The tests folder is currently based on configuration files that explore the program in the various possible ways. Is not yet aimed for distribution.
