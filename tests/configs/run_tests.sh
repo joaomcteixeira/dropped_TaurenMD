@@ -4,7 +4,7 @@ rm _*
 rm *.csv
 rm plot*
 rm taurenmd.log
-rm traj_OUTPUT.dcd
+rm traj_OUTPUT*
 
 source activate taurenmd
 
@@ -12,25 +12,25 @@ CONFIGS=(
     # basic test with RMSDS using MDTraj
     test_1.json
     ## basic test with RMSDs using MDAnalysis
-    test_2.json
+    #test_2.json
     ## basic test with atom_selection selecting chain 1 - MDTraj
-    test_3.json
+    #test_3.json
     ## basic test with atom_selection selecting chain 1 - MDTraj
-    test_4.json
+    #test_4.json
     ## savetraj with atom and frame selection - MDTraj
-    test_5.json
+    #test_5.json
     ## savetraj with atom and frame selection - MDAnalysis
-    test_6.json
+    #test_6.json
     ## combined RMSDs with atom selection (chain) - MDTraj
-    test_7.json
+    #test_7.json
     ## same as above with empty selection - MDTraj
-    test_8.json
+    #test_8.json
     ## combined RMSDs with atom selection (chain) - MDAnalysis
-    test_9.json
+    #test_9.json
     ## same as above with empty selection - MDAnalysis
-    test_10.json
+    #test_10.json
     # combined RMSDs with atom selection (resid) - MDAnalysis
-    test_11.json
+    #test_11.json
     )
 
 
