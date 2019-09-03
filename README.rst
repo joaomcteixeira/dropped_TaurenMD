@@ -11,7 +11,7 @@ Tauren-MD
 
 **Tauren-MD is an interface that streamlines analysis routines for Molecular Dynamics.**
 
-**We are currently developing a new version that will be hosted in a new `repository`_.**
+We are currently developing a new version that will be hosted in a new `repository`_.
 
 .. _repository: https://github.com/TaurenMD
 
