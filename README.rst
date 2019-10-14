@@ -1,19 +1,9 @@
+**!!!!!I have stop developing this repository. It remains open as a register of the past¡¡¡¡¡**
+
 Tauren-MD
 =========
 
-|doi| |version|
-
-.. |doi| image:: https://img.shields.io/badge/DOI-10.5281%2Fzenodo.2579632-informational.svg
-   :target: https://zenodo.org/badge/latestdoi/152575798
-
-.. |version| image:: https://img.shields.io/static/v1.svg?label=version&message=0.6.1&color=orange
-   :target: https://github.com/joaomcteixeira/Tauren-MD/releases
-
 **Tauren-MD is an interface that streamlines analysis routines for Molecular Dynamics.**
-
-We are currently developing a new version that will be hosted in a new `repository`_.
-
-.. _repository: https://github.com/TaurenMD
 
 Description
 -----------
